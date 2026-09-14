@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar uma profissional',
     status_code=HTTPStatus.CREATED,
     response_model=NailDesignResponse
@@ -46,7 +46,7 @@ async def create_nail_design(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar profissionais',
     status_code=HTTPStatus.OK,
     response_model=NailDesignList

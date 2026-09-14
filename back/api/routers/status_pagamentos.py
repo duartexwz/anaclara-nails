@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar um status de pagamento',
     status_code=HTTPStatus.CREATED,
     response_model=StatusPagamentoResponse
@@ -46,7 +46,7 @@ async def create_status_pagamento(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar status de pagamentos',
     status_code=HTTPStatus.OK,
     response_model=StatusPagamentoList

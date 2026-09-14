@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Enviar mensagem (admin ⇄ cliente)',
     status_code=HTTPStatus.CREATED,
     response_model=MensagemResponse
@@ -46,7 +46,7 @@ async def create_mensagem(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar mensagens',
     status_code=HTTPStatus.OK,
     response_model=MensagemList

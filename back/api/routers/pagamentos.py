@@ -29,7 +29,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Criar pagamento do sinal via Checkout Bricks',
     status_code=HTTPStatus.CREATED,
     response_model=PagamentoResponse

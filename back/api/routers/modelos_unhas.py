@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar um modelo de unha',
     status_code=HTTPStatus.CREATED,
     response_model=ModeloUnhaResponse
@@ -46,7 +46,7 @@ async def create_modelo_unha(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar modelos de unhas',
     status_code=HTTPStatus.OK,
     response_model=ModeloUnhaList

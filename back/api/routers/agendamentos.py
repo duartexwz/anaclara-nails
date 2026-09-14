@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar um agendamento',
     status_code=HTTPStatus.CREATED,
     response_model=AgendamentoResponse
@@ -45,7 +45,7 @@ async def create_agendamento(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar agendamentos',
     status_code=HTTPStatus.OK,
     response_model=AgendamentoList

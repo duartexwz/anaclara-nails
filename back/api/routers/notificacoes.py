@@ -28,7 +28,7 @@ router = APIRouter(
 )
 
 @router.get(
-    '/',
+    '',
     summary='Listar notificações do painel',
     status_code=HTTPStatus.OK,
     response_model=NotificacaoList

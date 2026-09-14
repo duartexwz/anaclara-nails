@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar um usuário',
     status_code=HTTPStatus.CREATED,
     response_model=UsuarioResponse
@@ -44,7 +44,7 @@ async def create_usuario(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar usuários',
     status_code=HTTPStatus.OK,
     response_model=UsuarioList

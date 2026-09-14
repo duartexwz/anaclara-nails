@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar uma programação semanal',
     status_code=HTTPStatus.CREATED,
     response_model=ProgramacaoSemanalResponse
@@ -46,7 +46,7 @@ async def create_programacao_semanal(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar programação semanal',
     status_code=HTTPStatus.OK,
     response_model=ProgramacaoSemanalList

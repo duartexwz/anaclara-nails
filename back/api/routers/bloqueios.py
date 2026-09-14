@@ -29,7 +29,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Bloquear uma data na agenda',
     status_code=HTTPStatus.CREATED,
     response_model=BloqueioResponse
@@ -45,7 +45,7 @@ async def create_bloqueio(
     )
 
 @router.get(
-    '/',
+    '',
     summary='Listar bloqueios da agenda',
     status_code=HTTPStatus.OK,
     response_model=BloqueioList
