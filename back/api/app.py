@@ -32,10 +32,16 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ## CONFIGURA O POOL DE CONEXÕES COM O BANCO A INICIAR
-    ## E FECHA A CONEXÃO AO FINALIZAR A REQUISIÇÃO
-
+    import glob
     app.state.pool = await asyncpg.create_pool(dsn=settings.DATABASE_URL)
+    pool = app.state.pool
+    for f in sorted(glob.glob(os.path.join(os.path.dirname(__file__), '..', 'migrations', '*.sql'))):
+        with open(f) as fh:
+            sql = fh.read()
+        try:
+            await pool.execute(sql)
+        except Exception as e:
+            print(f"MIGRATION {f}: {e}")
     yield
     await app.state.pool.close()
 
