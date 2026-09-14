@@ -69,6 +69,13 @@ export async function apiFetch<T>(
         : `Erro ${res.status} na API`;
     throw new ApiError(res.status, detalhe);
   }
+  if (res.status === 401 && path != "/api/v1/login/auth/refresh"){
+    const refreshOk = await fetch(`${API_URL} /api/v1/login/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (refreshOk) return apiFetch(path, init); //Repete a chamada original
+  }
   return corpo as T;
 }
 

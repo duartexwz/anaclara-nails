@@ -6,6 +6,7 @@ import {
   Users,
   Clock,
   LogOut,
+  X,
   Search,
   Menu,
   ShieldCheck,
@@ -103,6 +104,9 @@ export function AdminShell({
                 Nails Studio
               </p>
             </div>
+            <button type='button' onClick={() => setOpenNav(false)} className='flex size-9 items-center justify-center rounded-x1 text-sidebar-foreground/60 transition-color hover:bg-sidebar-accent hover:text-sidebar-foreground' aria-label="Fechar menu"> 
+                <X className='size-5' />
+            </button>
 
             <nav className="mt-10 space-y-1.5">
               {nav.map((item) => (
@@ -177,8 +181,8 @@ export function AdminShell({
                   AC
                 </span>
                 <div className="hidden leading-tight sm:block">
-                  <p className="text-sm font-medium">Ana Clara</p>
-                  <p className="text-xs text-muted-foreground">Administradora</p>
+                  <p className="text-sm font-medium">{usuario.nome}</p>
+                  <p className="text-xs text-muted-foreground">Administrador(a)</p>
                 </div>
               </div>
             </div>
