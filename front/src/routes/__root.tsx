@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense } from "react";
 import {
   Outlet,
   Link,
@@ -136,8 +137,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background"><div className="animate-pulse text-muted-foreground">Carregando...</div></div>}>
+          <Outlet />
+        </Suspense>
         <Toaster position="top-center" richColors />
         <PwaUpdater />
       </AuthProvider>
