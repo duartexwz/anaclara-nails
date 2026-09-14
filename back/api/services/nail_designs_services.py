@@ -72,12 +72,6 @@ class NailDesignsServices:
             db, filtrar
         )
 
-        if not nail_designs:
-            raise HTTPException(
-                detail='Profissional não encontrada',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return nail_designs
 
 

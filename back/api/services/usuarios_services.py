@@ -60,12 +60,6 @@ class UsuarioServices:
             db, filtrar
         )
 
-        if not usuarios:
-            raise HTTPException(
-                detail='Usuário não encontrado',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return usuarios
 
     async def update_usuarios(

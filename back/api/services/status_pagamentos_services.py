@@ -72,12 +72,6 @@ class StatusPagamentosServices:
             db, filtrar
         )
 
-        if not status_pagamentos:
-            raise HTTPException(
-                detail='Status de pagamento não encontrado',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return status_pagamentos
 
 

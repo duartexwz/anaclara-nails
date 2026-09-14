@@ -62,12 +62,6 @@ class NotificacoesServices:
             db, filtrar
         )
 
-        if not notificacoes:
-            raise HTTPException(
-                detail='Nenhuma notificação encontrada',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return notificacoes
 
     async def marcar_lida(

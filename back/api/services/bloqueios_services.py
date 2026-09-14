@@ -63,12 +63,6 @@ class BloqueiosServices:
             db, filtrar
         )
 
-        if not bloqueios:
-            raise HTTPException(
-                detail='Nenhum bloqueio encontrado',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return bloqueios
 
 

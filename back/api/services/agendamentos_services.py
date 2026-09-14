@@ -99,12 +99,6 @@ class AgendamentosServices:
             db, filtrar
         )
 
-        if not agendamentos:
-            raise HTTPException(
-                detail='Agendamento não encontrado',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return agendamentos
 
 

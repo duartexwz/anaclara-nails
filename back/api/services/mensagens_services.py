@@ -75,12 +75,6 @@ class MensagensServices:
             db, filtrar
         )
 
-        if not mensagens:
-            raise HTTPException(
-                detail='Nenhuma mensagem encontrada',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return mensagens
 
 

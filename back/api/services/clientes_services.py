@@ -98,12 +98,6 @@ class ClientesServices:
             db, filtrar
         )
 
-        if not clientes:
-            raise HTTPException(
-                detail='Cliente não encontrado',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return clientes
 
 
