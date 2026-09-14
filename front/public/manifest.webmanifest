@@ -1,0 +1,31 @@
+{
+  "name": "Ana Clara Nails — Agendamento de nail design",
+  "short_name": "Ana Clara Nails",
+  "description": "Catálogo de modelos de unha, agendamento online com sinal de 50% e acompanhamento do seu horário.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f1fd",
+  "theme_color": "#6959CD",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "regions": [
+    "gru1"
+  ],
+  "services": {
+    "front": {
+      "root": "front",
+      "framework": "tanstack-start"
+    },
+    "back": {
+      "root": "back",
+      "entrypoint": "api.app:app"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api(/.*)?",
+      "destination": {
+        "type": "service",
+        "service": "back"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "front"
+      }
+    }
+  ]
+}

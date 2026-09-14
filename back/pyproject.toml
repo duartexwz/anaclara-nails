@@ -1,0 +1,88 @@
+[project]
+name = "back"
+version = "0.1.0"
+description = "Sistema de agendamento para salão de unhas"
+readme = "README.md"
+authors = [
+    { name = "duartexwz", email = "mayckonkennedy877@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.31.0",
+    "fastapi[standard]>=0.141.1",
+    "httpx>=0.28.0",
+    "mercadopago>=2.2.0",
+    "psycopg[binary,poll]>=3.3.5",
+    "pwdlib[argon2]>=0.3.1",
+    "boto3>=1.35.0",
+    "pywebpush>=1.14.0",
+    "pyjwt>=2.13.0",
+    "python-dotenv>=1.2.3",
+    "uvicorn>=0.52.4",
+]
+
+[project.scripts]
+back = "back:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.6",
+    "taskipy>=1.14.1",
+]
+
+[tool.ruff]
+line-length = 85
+target-version = "py312"
+exclude = [
+    ".venv",
+    "__pycache__",
+    ".git",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "C4",
+    "SIM",
+]
+
+ignore =[
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"] 
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ['tests']
+asyncio_mode = 'auto'
+pythonpath = ['.']
+
+[tool.taskipy.tasks]
+dev = "uvicorn app.main:app --reload"
+lint = "ruff check ."
+lint-fix = "ruff check . --fix"
+format = "ruff format ."
+check = "ruff check . && ruff format . --check"
+test = "pytest --cov=api --cov-report=term-missing"
+

@@ -1,0 +1,82 @@
+services:
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_MP_PUBLIC_KEY: ${VITE_MP_PUBLIC_KEY:-}
+    expose:
+      - "8010"
+    networks:
+      - nail-appointment-network
+    depends_on:
+      - backend
+
+  gateway:
+    image: nginx:alpine
+    container_name: nail_gateway
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8010:80"
+    networks:
+      - nail-appointment-network
+    depends_on:
+      - frontend
+      - backend
+
+  backend:
+    build:
+      context: ./back
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      CLIENT_ID: ${CLIENT_ID}
+      ACCESS_TOKEN: ${ACCESS_TOKEN}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      ALGORITHM: ${ALGORITHM}
+      FRONTEND_URL: ${FRONTEND_URL}
+      MERCADO_PAGO_ACCESS_TOKEN: ${MERCADO_PAGO_ACCESS_TOKEN}
+      MERCADO_PAGO_PUBLIC_KEY: ${MERCADO_PAGO_PUBLIC_KEY}
+      MERCADO_PAGO_WEBHOOK_ACESS_TOKEN: ${MERCADO_PAGO_WEBHOOK_ACESS_TOKEN}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      SMPT_USER: ${SMPT_USER}
+      SMTP_PASSORD: ${SMTP_PASSORD}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USE_TLS: ${SMTP_USE_TLS}
+      SMTP_USE_SSL: ${SMTP_USE_SSL}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      WHATSAPP_ACESS_TOKEN: ${WHATSAPP_ACESS_TOKEN}
+      WHATSAPP_SECRET_KEY: ${WHATSAPP_SECRET_KEY}
+      COOKIE_SECURE: ${COOKIE_SECURE}
+      COOKE_SAMESITE: ${COOKE_SAMESITE}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ADMIN_NOME: ${ADMIN_NOME}
+    networks:
+      - nail-appointment-network
+    volumes:
+      - uploads:/app/uploads
+    expose:
+      - "8020"
+    ports:
+      - "8020:8020"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8020/health/ready', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  nail-appointment-network:
+    driver: bridge
+
+volumes:
+  uploads:
