@@ -85,6 +85,7 @@ export type UsuarioApi = {
   id: number;
   email: string;
   type_user_id: number;
+  is_admin: boolean;
 };
 
 export async function loginApi(
@@ -541,6 +542,34 @@ export async function marcarNotificacaoLidaApi(id: number): Promise<void> {
 
 export async function marcarTodasLidasApi(): Promise<void> {
   await apiFetch("/api/v1/notificacoes/lidas", { method: "PATCH" });
+}
+
+/* ------------------------------- Administradores ---------------------- */
+
+export type AdministradorApi = {
+  id: number;
+  nome: string;
+  email: string;
+  type_user_id: number;
+};
+
+export async function criarAdministradorApi(dados: {
+  nome: string;
+  email: string;
+  password: string;
+  type_user_id: number;
+}): Promise<AdministradorApi> {
+  return apiFetch<AdministradorApi>("/api/v1/administradores", {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function listarAdministradoresApi(): Promise<AdministradorApi[]> {
+  const data = await apiFetch<{ administradores: AdministradorApi[] }>(
+    "/api/v1/administradores",
+  );
+  return data.administradores ?? [];
 }
 
 /* ------------------------------- Push -------------------------------- */

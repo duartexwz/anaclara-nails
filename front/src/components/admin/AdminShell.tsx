@@ -9,13 +9,23 @@ import {
   X,
   Search,
   Menu,
-  ShieldCheck,
   Home,
+  Plus,
+  Loader2,
+  ShieldCheck,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
 import { SinoNotificacoes } from "@/components/admin/SinoNotificacoes";
 import { useAuth } from "@/lib/auth";
+import { criarAdministradorApi } from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { ApiError } from "@/lib/api";
 
 const nav = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard },
@@ -39,12 +49,44 @@ export function AdminShell({
   const [openNav, setOpenNav] = useState(false);
   const [authAberto, setAuthAberto] = useState(false);
   const [modoAuth, setModoAuth] = useState<ModoAuth>("login");
-  const { usuario, entrar, cadastrar, sair } = useAuth();
+  const [adminAberto, setAdminAberto] = useState(false);
+  const [adminNome, setAdminNome] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminSenha, setAdminSenha] = useState("");
+  const { usuario, entrar, cadastrar, sair, ehAdmin } = useAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Gate de acesso (RF18): sem sessão de admin, exibe tela de entrada
-  // em vez do conteúdo do painel.
-  if (usuario?.perfil !== "admin") {
+  const novoAdminMutation = useMutation({
+    mutationFn: async () => {
+      if (!adminNome.trim() || !adminEmail.trim() || !adminSenha) {
+        throw new ApiError(400, "Preencha nome, email e senha.");
+      }
+      return criarAdministradorApi({ nome: adminNome.trim(), email: adminEmail.trim(), password: adminSenha, type_user_id: 1 });
+    },
+    onSuccess: () => {
+      toast.success("Administrador adicionado com sucesso");
+      setAdminAberto(false);
+      setAdminNome("");
+      setAdminEmail("");
+      setAdminSenha("");
+      void queryClient.invalidateQueries();
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : "Não foi possível adicionar admin.");
+    },
+  });
+
+  const handleAdminDialogChange = (o: boolean) => {
+    setAdminAberto(false);
+    if (!o) {
+      setAdminNome("");
+      setAdminEmail("");
+      setAdminSenha("");
+    }
+  };
+
+  if (!ehAdmin) {
     return (
       <div className="grid min-h-screen place-items-center bg-background px-4">
         <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card">
@@ -93,119 +135,158 @@ export function AdminShell({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
-        <aside
-          className={`fixed inset-y-0 left-0 z-40 w-72 flex-col justify-between bg-sidebar px-5 py-7 text-sidebar-foreground transition-transform lg:flex lg:translate-x-0 ${
-            openNav ? "flex translate-x-0" : "hidden -translate-x-full"
-          }`}
-        >
-          <div>
-            <div className="relative px-2">
-              <p className="font-display text-2xl leading-tight">Ana Clara</p>
-              <p className="text-xs uppercase tracking-[0.35em] text-sidebar-foreground/60">
-                Nails Studio
-              </p>
-              <button type="button" onClick={() => setOpenNav(false)} className="lg:hidden absolute top-0 right-0 size-9 items-center justify-center rounded-xl text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" aria-label="Fechar menu">
-                <X className="size-5" />
-              </button>
-            </div>
+    <>
+      <div className="min-h-screen bg-background">
+        <div className="flex">
+          <aside
+            className={`fixed inset-y-0 left-0 z-40 w-72 flex-col justify-between bg-sidebar px-5 py-7 text-sidebar-foreground transition-transform lg:flex lg:translate-x-0 ${
+              openNav ? "flex translate-x-0" : "hidden -translate-x-full"
+            }`}
+          >
+            <div>
+              <div className="relative px-2">
+                <p className="font-display text-2xl leading-tight">Ana Clara</p>
+                <p className="text-xs uppercase tracking-[0.35em] text-sidebar-foreground/60">
+                  Nails Studio
+                </p>
+                <button type="button" onClick={() => setOpenNav(false)} className="lg:hidden absolute top-0 right-0 size-9 items-center justify-center rounded-xl text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" aria-label="Fechar menu">
+                  <X className="size-5" />
+                </button>
+              </div>
 
-            <nav className="mt-10 space-y-1.5">
-              {nav.map((item) => (
+              <nav className="mt-10 space-y-1.5">
+                {nav.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setOpenNav(false)}
+                    activeOptions={{ exact: item.to === "/admin" }}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    activeProps={{
+                      className:
+                        "bg-gradient-primary text-sidebar-primary-foreground shadow-soft font-medium",
+                    }}
+                  >
+                    <item.icon className="size-4.5" />
+                    {item.label}
+                  </Link>
+                ))}
                 <Link
-                  key={item.to}
-                  to={item.to}
+                  to="/"
                   onClick={() => setOpenNav(false)}
-                  activeOptions={{ exact: item.to === "/admin" }}
                   className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  activeProps={{
-                    className:
-                      "bg-gradient-primary text-sidebar-primary-foreground shadow-soft font-medium",
-                  }}
                 >
-                  <item.icon className="size-4.5" />
-                  {item.label}
+                  <Home className="size-4.5" />
+                  Voltar ao site
                 </Link>
-              ))}
-              <Link
-                to="/"
-                onClick={() => setOpenNav(false)}
-                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              >
-                <Home className="size-4.5" />
-                Voltar ao site
-              </Link>
-            </nav>
-          </div>
-
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-sidebar-border bg-sidebar-accent/50 p-4">
-              <p className="font-display text-base">Sinal de 50%</p>
-              <p className="mt-1 text-xs text-sidebar-foreground/70">
-                Agendamentos são confirmados somente após aprovação do sinal.
-              </p>
+                <button
+                  onClick={() => setAdminAberto(true)}
+                  className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                >
+                  <Plus className="size-4.5" /> Adicionar admin
+                </button>
+              </nav>
             </div>
-            <button
-              onClick={() => {
-                sair();
-                navigate({ to: "/" });
-              }}
-              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            >
-              <LogOut className="size-4.5" />
-              Sair da conta
-            </button>
-          </div>
-        </aside>
 
-        <main className="min-w-0 flex-1 lg:pl-72">
-          <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
-            <div className="flex flex-wrap items-center gap-4 px-5 py-5 sm:px-8">
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-sidebar-border bg-sidebar-accent/50 p-4">
+                <p className="font-display text-base">Sinal de 50%</p>
+                <p className="mt-1 text-xs text-sidebar-foreground/70">
+                  Agendamentos são confirmados somente após aprovação do sinal.
+                </p>
+              </div>
               <button
-                className="rounded-xl border border-border p-2 lg:hidden"
-                onClick={() => setOpenNav((v) => !v)}
-                aria-label="Abrir menu"
+                onClick={() => {
+                  sair();
+                  navigate({ to: "/" });
+                }}
+                className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
-                <Menu className="size-5" />
+                <LogOut className="size-4.5" />
+                Sair da conta
               </button>
+            </div>
+          </aside>
 
-              <div className="min-w-0 flex-1">
-                <h1 className="truncate font-display text-2xl text-foreground sm:text-3xl">
-                  {title}
-                </h1>
-                <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
-              </div>
+          <main className="min-w-0 flex-1 lg:pl-72">
+            <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
+              <div className="flex flex-wrap items-center gap-4 px-5 py-5 sm:px-8">
+                <button
+                  className="rounded-xl border border-border p-2 lg:hidden"
+                  onClick={() => setOpenNav((v) => !v)}
+                  aria-label="Abrir menu"
+                >
+                  <Menu className="size-5" />
+                </button>
 
-              <div className="hidden items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2.5 md:flex">
-                <Search className="size-4 text-muted-foreground" />
-                <input
-                  placeholder="Buscar cliente ou modelo"
-                  className="w-52 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                />
-              </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="truncate font-display text-2xl text-foreground sm:text-3xl">
+                    {title}
+                  </h1>
+                  <p className="truncate text-sm text-muted-foreground">{subtitle}</p>
+                </div>
 
-              <SinoNotificacoes />
+                <div className="hidden items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2.5 md:flex">
+                  <Search className="size-4 text-muted-foreground" />
+                  <input
+                    placeholder="Buscar cliente ou modelo"
+                    className="w-52 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  />
+                </div>
 
-              <div className="flex items-center gap-3 rounded-2xl bg-card px-3 py-2 shadow-card">
-                <span className="flex size-9 items-center justify-center rounded-full bg-gradient-primary font-display text-sm text-primary-foreground">
-                  AC
-                </span>
-                <div className="hidden leading-tight sm:block">
-                  <p className="text-sm font-medium">{usuario.nome}</p>
-                  <p className="text-xs text-muted-foreground">Administrador(a)</p>
+                <SinoNotificacoes />
+
+                <div className="flex items-center gap-3 rounded-2xl bg-card px-3 py-2 shadow-card">
+                  <span className="flex size-9 items-center justify-center rounded-full bg-gradient-primary font-display text-sm text-primary-foreground">
+                    AC
+                  </span>
+                  <div className="hidden leading-tight sm:block">
+                    <p className="text-sm font-medium">{usuario.nome}</p>
+                    <p className="text-xs text-muted-foreground">Administrador(a)</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </header>
+            </header>
 
-          <div className="space-y-8 px-5 pb-16 pt-7 sm:px-8">
-            {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
-            {children}
-          </div>
-        </main>
+            <div className="space-y-8 px-5 pb-16 pt-7 sm:px-8">
+              {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+
+      <Dialog open={adminAberto} onOpenChange={handleAdminDialogChange}>
+        <DialogContent className="max-w-md rounded-3xl border-border/70 bg-card shadow-card">
+          <DialogHeader className="text-left">
+            <DialogTitle className="font-display text-2xl">Adicionar administrador</DialogTitle>
+            <DialogDescription>Crie uma nova conta de acesso administrativo.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="space-y-1.5">
+              <Label>Nome</Label>
+              <Input value={adminNome} onChange={(e) => setAdminNome(e.target.value)} placeholder="Nome completo" className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input type="email" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder="admin@example.com" className="h-11 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Senha</Label>
+              <Input type="password" value={adminSenha} onChange={(e) => setAdminSenha(e.target.value)} placeholder="Mínimo 8 caracteres" className="h-11 rounded-xl" />
+            </div>
+          </div>
+          <Button
+            className="w-full gradient-primary text-primary-foreground shadow-soft"
+            disabled={novoAdminMutation.isPending}
+            onClick={() => novoAdminMutation.mutate()}
+          >
+            {novoAdminMutation.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            Adicionar admin
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

@@ -173,7 +173,8 @@ async def get_user_by_email(
         return UsuarioLogado(
             id=admin_record['id'],
             email=admin_record['email'],
-            type_user_id=admin_record['type_user_id'] or 1
+            type_user_id=admin_record['type_user_id'] or 1,
+            is_admin=True
         )
 
     # 2. TABELA USUÁRIOS → SESSÃO DE USUÁRIO (USER)
@@ -193,7 +194,7 @@ async def get_user_by_email(
     if not user_record:
         raise _credentials_exception()
 
-    return UsuarioLogado(**dict(user_record))
+    return UsuarioLogado(**{**dict(user_record), 'is_admin': False})
 
 
 async def get_current_user(

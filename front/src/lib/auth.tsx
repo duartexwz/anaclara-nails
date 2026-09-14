@@ -3,7 +3,7 @@ import { loginApi, logoutApi, meApi, registerApi } from "./api";
 
 /**
  * Sessão real via API (RF01/RF02/RF18).
- * Papéis: "cliente" (fluxo normal) e "admin" (type_user_id 1).
+ * Papéis: "cliente" (fluxo normal) e "admin" (administrador cadastrado na tabela administradores).
  * A aba "Painel" do cabeçalho só aparece quando há sessão de admin.
  */
 
@@ -13,6 +13,7 @@ export type Usuario = {
   id: number;
   nome: string;
   email: string;
+  is_admin: boolean;
   perfil: Perfil;
 };
 
@@ -37,12 +38,13 @@ function nomeDoEmail(email: string): string {
   return nome || "Cliente";
 }
 
-function mapearUsuario(api: { id: number; email: string; type_user_id: number }): Usuario {
+function mapearUsuario(api: { id: number; email: string; type_user_id: number; is_admin: boolean }): Usuario {
   return {
     id: api.id,
     email: api.email,
     nome: nomeDoEmail(api.email),
-    perfil: api.type_user_id === 1 ? "admin" : "cliente",
+    is_admin: api.is_admin,
+    perfil: api.is_admin ? "admin" : "cliente",
   };
 }
 
@@ -86,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ usuario, carregandoSessao, entrar, cadastrar, sair, ehAdmin: usuario?.perfil === "admin" }}
+      value={{ usuario, carregandoSessao, entrar, cadastrar, sair, ehAdmin: usuario?.is_admin ?? false }}
     >
       {children}
     </Ctx.Provider>

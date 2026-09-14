@@ -5,6 +5,7 @@ class UsuarioLogado(BaseModel):
     id: int
     email: str
     type_user_id: int
+    is_admin: bool
 
 class Token(BaseModel):
     access_token: str
