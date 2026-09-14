@@ -75,12 +75,6 @@ class ProgramacaoSemanalServices:
             )
         )
 
-        if not programacao_semanal:
-            raise HTTPException(
-                detail='Programação semanal não encontrada',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return programacao_semanal
 
 
