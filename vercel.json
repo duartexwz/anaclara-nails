@@ -1,8 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/",
   "regions": ["gru1"],
-  "installCommand": "cd front && bun install",
-  "buildCommand": "cd front && bun run build",
   "services": {
     "front": {
       "root": "front",

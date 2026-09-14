@@ -10,6 +10,7 @@ import {
   Search,
   Menu,
   ShieldCheck,
+  Home,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
@@ -60,15 +61,17 @@ export function AdminShell({
                 ? `Você está logada como ${usuario.nome} (cliente). O painel é exclusivo da administradora.`
                 : "Entre com a conta da profissional para gerenciar agenda, catálogo e clientes."}
             </p>
-            <button
-              onClick={() => {
-                setModoAuth("login");
-                setAuthAberto(true);
-              }}
-              className="w-full rounded-2xl bg-gradient-primary py-3.5 text-sm font-medium text-primary-foreground shadow-soft transition-opacity hover:opacity-90"
-            >
-              Entrar como profissional
-            </button>
+            {!usuario ? (
+              <button
+                onClick={() => {
+                  setModoAuth("login");
+                  setAuthAberto(true);
+                }}
+                className="w-full rounded-2xl bg-gradient-primary py-3.5 text-sm font-medium text-primary-foreground shadow-soft transition-opacity hover:opacity-90"
+              >
+                Entrar como profissional
+              </button>
+            ) : null}
             <button
               onClick={() => navigate({ to: "/" })}
               className="w-full text-sm text-muted-foreground hover:text-primary"
@@ -98,15 +101,15 @@ export function AdminShell({
           }`}
         >
           <div>
-            <div className="px-2">
+            <div className="relative px-2">
               <p className="font-display text-2xl leading-tight">Ana Clara</p>
               <p className="text-xs uppercase tracking-[0.35em] text-sidebar-foreground/60">
                 Nails Studio
               </p>
+              <button type="button" onClick={() => setOpenNav(false)} className="lg:hidden absolute top-0 right-0 size-9 items-center justify-center rounded-xl text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" aria-label="Fechar menu">
+                <X className="size-5" />
+              </button>
             </div>
-            <button type='button' onClick={() => setOpenNav(false)} className='flex size-9 items-center justify-center rounded-x1 text-sidebar-foreground/60 transition-color hover:bg-sidebar-accent hover:text-sidebar-foreground' aria-label="Fechar menu"> 
-                <X className='size-5' />
-            </button>
 
             <nav className="mt-10 space-y-1.5">
               {nav.map((item) => (
@@ -125,6 +128,14 @@ export function AdminShell({
                   {item.label}
                 </Link>
               ))}
+              <Link
+                to="/"
+                onClick={() => setOpenNav(false)}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-sidebar-foreground/75 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              >
+                <Home className="size-4.5" />
+                Voltar ao site
+              </Link>
             </nav>
           </div>
 
