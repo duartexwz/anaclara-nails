@@ -65,18 +65,10 @@ class ModelosUnhasServices:
         self,
         db: Connection,
         filtrar: ModeloUnhaFilter
-    ) -> dict:
-
+    ) -> list:
         modelos_unhas = await self.modelos_unhas_repository.buscar(
             db, filtrar
         )
-
-        if not modelos_unhas:
-            raise HTTPException(
-                detail='Modelo de unha não encontrado',
-                status_code=HTTPStatus.NOT_FOUND
-            )
-
         return modelos_unhas
 
 

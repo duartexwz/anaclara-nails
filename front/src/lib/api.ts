@@ -218,7 +218,7 @@ export type ModeloApi = {
 
 export async function listarModelosApi(): Promise<ModeloApi[]> {
   const data = await apiFetch<{ modelos_unhas: ModeloApi[] }>(
-    "/api/v1/modelos-unhas/",
+    "/api/v1/modelos-unhas",
   );
   return data.modelos_unhas ?? [];
 }
@@ -232,7 +232,7 @@ export async function criarModeloApi(dados: {
   ativo?: boolean;
   destaque?: boolean;
 }): Promise<ModeloApi> {
-  return apiFetch<ModeloApi>("/api/v1/modelos-unhas/", {
+  return apiFetch<ModeloApi>("/api/v1/modelos-unhas", {
     method: "POST",
     body: JSON.stringify(dados),
   });
