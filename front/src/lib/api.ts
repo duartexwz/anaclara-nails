@@ -70,7 +70,7 @@ export async function apiFetch<T>(
     throw new ApiError(res.status, detalhe);
   }
   if (res.status === 401 && path != "/api/v1/login/auth/refresh"){
-    const refreshOk = await fetch(`${API_URL} /api/v1/login/auth/refresh`, {
+    const refreshOk = await fetch(`${API_URL}/api/v1/login/auth/refresh`, {
       method: "POST",
       credentials: "include",
     });
@@ -93,7 +93,7 @@ export async function loginApi(
   senha: string,
 ): Promise<UsuarioApi> {
   const corpo = new URLSearchParams({ username: email, password: senha });
-  const res = await fetch(`${API_URL}/api/v1/login/`, {
+  const res = await fetch(`${API_URL}/api/v1/login`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -124,7 +124,7 @@ export async function registerApi(dados: {
   email: string;
   password: string;
 }): Promise<{ id: number; email: string }> {
-  return apiFetch("/api/v1/usuarios/", {
+  return apiFetch("/api/v1/usuarios", {
     method: "POST",
     body: JSON.stringify(dados),
   });

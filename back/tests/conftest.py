@@ -112,7 +112,8 @@ def admin_user():
         id=1,
         email='ana.clara@anaclaranails.com',
         password='hash-fake',
-        type_user_id=1
+        type_user_id=1,
+        is_admin=True
     )
 
 
@@ -122,7 +123,8 @@ def comum_user():
         id=2,
         email='maria.eduarda@email.com',
         password='hash-fake',
-        type_user_id=2
+        type_user_id=2,
+        is_admin=False
     )
 
 

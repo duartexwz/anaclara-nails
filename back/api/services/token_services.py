@@ -65,7 +65,8 @@ class TokenServices:
                     status_code=HTTPStatus.UNAUTHORIZED
                 )
             return await self._emitir_sessao(
-                admin_record['id'], admin_record['email'], 1
+                admin_record['id'], admin_record['email'], 1,
+                is_admin=True
             )
 
         # 2. TABELA USUÁRIOS → LOGIN DE USUÁRIO (USER)
@@ -87,11 +88,12 @@ class TokenServices:
 
         return await self._emitir_sessao(
             user_record['id'], user_record['email'],
-            user_record['type_user_id']
+            user_record['type_user_id'], is_admin=False
         )
 
     async def _emitir_sessao(
-        self, user_id: int, email: str, type_user_id: int
+        self, user_id: int, email: str, type_user_id: int,
+        is_admin: bool
     ) -> dict:
         access_token = await create_access_token(
             data={
@@ -109,7 +111,8 @@ class TokenServices:
         user = UsuarioLogado(
             id=user_id,
             email=email,
-            type_user_id=type_user_id
+            type_user_id=type_user_id,
+            is_admin=is_admin
         )
 
         return {
