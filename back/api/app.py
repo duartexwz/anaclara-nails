@@ -1,7 +1,6 @@
 import os
 from contextlib import asynccontextmanager
 from http import HTTPStatus
-from secrets import token_urlsafe
 
 import asyncpg
 from dotenv import load_dotenv
