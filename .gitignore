@@ -17,3 +17,4 @@ dist/
 
 # uploads locais
 uploads/*
+.vercel
