@@ -1,6 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 from http import HTTPStatus
+from secrets import token_urlsafe
 
 import asyncpg
 from dotenv import load_dotenv
@@ -8,6 +9,7 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from api.settings import settings
 from api.routers import (
     administradores,
     agendamentos,
@@ -25,8 +27,6 @@ from api.routers import (
     uploads,
     usuarios,
 )
-from api.settings import settings
-
 load_dotenv()
 
 
@@ -123,23 +123,31 @@ app.include_router(api_v1)
 @app.middleware('http')
 async def csrf_cookie_protection(request: Request, call_next):
     exempt_paths = {
-        '/login/',
-        '/api/v1/login/',
-        '/api/v1/usuarios/',
-        '/docs/',
-        '/openapi.json/',
-        '/acompanhar/agendamento',
-        '/api/v1/pagamentos/webhook'
+        '/login/', '/login',
+        '/api/v1/login/', '/api/v1/login',
+        '/api/v1/usuarios/', '/api/v1/usuarios',
+        '/docs/', '/openapi.json/',
+        '/acompanhar/agendamento', '/api/v1/pagamentos/webhook',
     }
 
-    ## LEITURAS E ROTAS ISENTAS SEGUEM SEM VALIDAÇÃO DE CSRF
-    if (
-        request.url.path in exempt_paths
-        or request.method in ('GET', 'HEAD', 'OPTIONS')
-    ):
+    if request.method in ('GET', 'HEAD', 'OPTIONS'):
+        if request.url.path in exempt_paths:
+            return await call_next(request)
+        if request.url.path.startswith('/api/v1/'):
+            response = await call_next(request)
+            if 'csrf_token' not in request.cookies:
+                response.set_cookie(
+                    key='csrf_token',
+                    value=token_urlsafe(32),
+                    httponly=False,
+                    secure=settings.COOKIE_SECURE,
+                    samesite=settings.COOKIE_SAMESITE,
+                    domain=settings.COOKIE_DOMAIN,
+                    path='/',
+                )
+            return response
         return await call_next(request)
 
-    ## ESCRITAS EXIGEM O PAR CSRF COOKIE + HEADER
     csrf_cookie = request.cookies.get('csrf_token')
     csrf_header = request.headers.get('X-CSRF-Token')
 
