@@ -130,22 +130,7 @@ async def csrf_cookie_protection(request: Request, call_next):
         '/acompanhar/agendamento', '/api/v1/pagamentos/webhook',
     }
 
-    if request.method in ('GET', 'HEAD', 'OPTIONS'):
-        if request.url.path in exempt_paths:
-            return await call_next(request)
-        if request.url.path.startswith('/api/v1/'):
-            response = await call_next(request)
-            if 'csrf_token' not in request.cookies:
-                response.set_cookie(
-                    key='csrf_token',
-                    value=token_urlsafe(32),
-                    httponly=False,
-                    secure=settings.COOKIE_SECURE,
-                    samesite=settings.COOKIE_SAMESITE,
-                    domain=settings.COOKIE_DOMAIN,
-                    path='/',
-                )
-            return response
+    if request.url.path in exempt_paths or request.method in ('GET', 'HEAD', 'OPTIONS'):
         return await call_next(request)
 
     csrf_cookie = request.cookies.get('csrf_token')
