@@ -9,7 +9,6 @@ class AdministradoresRepository(QueryRepository):
         'email',
         'password',
         'type_user_id',
-        'nail_design_id',
     }
 
     mapa_filtros = {
@@ -18,5 +17,4 @@ class AdministradoresRepository(QueryRepository):
         'email': Operador.ILIKE,
         'password': Operador.ILIKE,
         'type_user_id': Operador.IGUAL,
-        'nail_design_id': Operador.IGUAL
     }
