@@ -16,10 +16,10 @@ class AgendamentosRepository(QueryRepository):
 
 
     mapa_filtros ={ 
-        'id': Operador.ILIKE,
-        'cliente_id': Operador.ILIKE,
-        'modelo_id': Operador.ILIKE,
-        'horario': Operador.ILIKE,
-        'sinal': Operador.ILIKE,
-        'status_pagamentos_id': Operador.ILIKE
+        'id': Operador.IGUAL,
+        'cliente_id': Operador.IGUAL,
+        'modelo_id': Operador.IGUAL,
+        'horario': Operador.IGUAL,
+        'sinal': Operador.IGUAL,
+        'status_pagamentos_id': Operador.IGUAL
     }

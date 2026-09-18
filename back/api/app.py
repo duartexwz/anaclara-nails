@@ -94,8 +94,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allow_headers=['Content-Type', 'Authorization', 'X-CSRF-Token']
+    allow_methods=['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS' 'PUT', ],
+    allow_headers=[
+        'Content-Type',
+        'Authorization',
+        'X-CSRF-Token',
+        'x-signature',
+        'x-request-id'
+    ]
 )
 
 ## REGISTRA AS ROTAS DA API SOB O PREFIXO /api/v1
@@ -122,11 +128,11 @@ app.include_router(api_v1)
 @app.middleware('http')
 async def csrf_cookie_protection(request: Request, call_next):
     exempt_paths = {
-        '/login/', '/login',
-        '/api/v1/login/', '/api/v1/login',
-        '/api/v1/usuarios/', '/api/v1/usuarios',
-        '/docs/', '/openapi.json/',
+        '/api/v1/login/', '/api/v1/login/recuperar',
+        '/api/v1/usuarios/', '/api/v1/login/redefinir/'
+        '/docs/', '/openapi.json',
         '/acompanhar/agendamento', '/api/v1/pagamentos/webhook',
+        '/api/v1/administradores/',
     }
 
     if request.url.path in exempt_paths or request.method in ('GET', 'HEAD', 'OPTIONS'):

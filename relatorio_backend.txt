@@ -1,0 +1,218 @@
+RELATORIO GERAL BACKEND - NAIL APPOINTMENT
+Data: 2026-09-15
+Modo: Somente leitura - nenhum arquivo alterado
+Escopo: back/api/app.py, back/api/routers/*.py (14), back/api/services/*.py, back/api/repositories/*.py, back/api/schemas/*.py, back/api/security.py, back/api/settings.py, back/api/database.py, back/migrations/*.sql, back/api/seed.py, front/src/lib/api.ts
+Gerado em: /home/duarte/Documentos/projects/nail-appointment/relatorio_backend.txt
+
+================================================================================
+1. POST /api/v1/programacao-semanal 422
+================================================================================
+[1.1] back/api/schemas/programacao_semanal_schemas.py:6-12 | POST/422
+  ProgramacaoSemanalBase exige inicio_expediente:time, fim_expediente:time, pausa_duracao:time obrigatorios.
+  Front envia {ativo, dia_semana, inicio, fim, intervalo} ou {inicio_expediente, fim_expediente, intervalo_minutos} sem pausa_duracao.
+  Pydantic extra=ignore descarta chaves desconhecidas e acusa Field required -> 422 sempre.
+
+[1.2] back/api/schemas/programacao_semanal_schemas.py:6-12 vs back/api/repositories/programacao_semanal_repository.py:15 | TABELA/POST
+  Repository tem intervalo_minutos e pausa_duracao; Base nao tem intervalo_minutos. Criacao via model_dump() nunca persiste intervalo.
+
+[1.3] back/migrations/003_molde_mensagens_bloqueios.sql:11-12 vs back/migrations/001_enterprise_schema.sql:44-52 | TABELA/QUERY
+  intervalo_minutos criado na 003, mas 001 cria tabela sem ele. Se lifespan falhar, coluna nao existe -> INSERT 500.
+
+[1.4] front/src/routes/admin/horarios.tsx:117-123 e front/src/lib/api.ts:362-373 | POST/422
+  Payload envia intervalo_minutos sem pausa_duracao. Prova que mesmo corrigindo nomes, 422 persiste.
+
+[1.5] front/src/routes/admin/horarios.tsx:195 | POST/QUERY
+  pausa_duracao "01:00:00" hard-coded so em gerarSlots, nunca enviado no POST.
+
+================================================================================
+2. CATALOGO ADMIN SEM BOTAO ADICIONAR (is_admin)
+================================================================================
+[2.1] back/api/security.py:155-199 | LOGIN/TOKEN
+  is_admin=True so se email existe em administradores. Se estiver so em usuarios(type_user_id=1), retorna is_admin=False.
+
+[2.2] back/api/seed.py:22-40 | TABELA/LOGIN
+  Seed insere admin em usuarios, nao em administradores. Inconsistente com get_user_by_email e token_services.
+
+[2.3] front/src/lib/auth.tsx:41-48 | GET/SEGURANCA
+  perfil = is_admin ? admin : cliente; ehAdmin = is_admin. AdminShell e routes/admin/catalogo.tsx:205 so mostram botao se ehAdmin.
+
+[2.4] back/api/services/token_services.py:62-72 vs back/api/security.py:155-180 | TOKEN/LOGIN
+  Login retorna is_admin=True via administradores, mas get_current_user subsequente pode retornar False se duplicata.
+
+[2.5] back/api/security.py:32-35 | SEGURANCA
+  ACCESS_LEVEL_ORDER ADMIN=1 USER=1 -> requer_nivel_acesso nunca bloqueia.
+
+[2.6] back/api/security.py:258-268 | SEGURANCA/QUERY
+  Acessa current_user.type_user inexistente; UsuarioLogado tem type_user_id -> AttributeError 500 se usado.
+
+================================================================================
+3. TRAILING SLASH 307
+================================================================================
+Back: APIRouter(prefix='/api/v1') + @router.post('') = slashless. Front mistura slashed.
+[3.1] back/api/routers/auth.py:32 /api/v1/login/ vs front/src/lib/api.ts:96 /api/v1/login -> 307 POST login | PATH/LOGIN
+[3.2] back/api/routers/auth.py:134 /logout/ vs front 113 /logout/ -> OK
+[3.3] back/api/routers/programacao_semanal.py:32 '' vs front 370 /programacao-semanal/ -> 307 POST | PATH/POST
+[3.4] back/api/routers/programacao_semanal.py:48 '' vs front 357 /programacao-semanal/ -> 307 GET | PATH/GET
+[3.5] back/api/routers/clientes.py:32 '' vs front 315 /clientes/ -> 307 POST | PATH/POST
+[3.6] back/api/routers/clientes.py:46 '' vs front 305 /clientes/?qs -> 307 GET | PATH/GET
+[3.7] back/api/routers/agendamentos.py:32 '' vs front 179 /agendamentos/ -> 307 POST | PATH/POST
+[3.8] back/api/routers/agendamentos.py:47 '' vs front 187 /agendamentos/ -> 307 GET | PATH/GET
+[3.9] back/api/routers/bloqueios.py:31 '' vs front 399,408 /bloqueios/ -> 307 | PATH/POST/GET
+[3.10] back/api/routers/mensagens.py:32 '' vs front 441 /mensagens/ -> 307 POST | PATH/POST
+[3.11] back/api/routers/mensagens.py:47 '' vs front 431 /mensagens/?limit=50 -> 307 GET | PATH/GET
+[3.12] back/api/routers/pagamentos.py:31 '' vs front 494 /pagamentos/ -> 307 POST | PATH/POST
+[3.13] back/api/routers/notificacoes.py:30 '' vs front 534 /notificacoes/?qs -> 307 GET | PATH/GET
+[3.14] back/api/routers/status_pagamentos.py:32 '' vs front 454 /status-pagamentos/ -> 307 | PATH/GET
+[3.15] back/api/routers/administradores.py:32 @post('/') slashed vs front 563 /administradores slashless -> 307 POST admin | PATH/POST
+[3.16] back/api/routers/administradores.py:48 @get('') slashless vs front 570 slashless -> OK | PATH/GET
+[3.17] back/api/routers/modelos_unhas.py:32 '' vs front 236 /modelos-unhas slashless -> OK
+[3.18] back/api/routers/modelos_unhas.py:48 '' vs front 222 slashless -> OK
+Obs: FastAPI 307 preserva metodo em GET mas POST pode virar GET em browsers, perde X-CSRF-Token e adiciona latencia.
+
+================================================================================
+4. CSRF MIDDLEWARE - back/api/app.py:123-136
+================================================================================
+[4.1] back/api/app.py:124 | SEGURANCA
+  print('PATH:', request.url.path) debug em producao vaza paths em stdout Vercel/Docker.
+
+[4.2] back/api/app.py:132 | SEGURANCA/PATH
+  'api/v1/administradores/' sem barra inicial -> request.url.path '/api/v1/administradores/' nunca igual -> 403 indevido.
+
+[4.3] back/api/app.py:126 | SEGURANCA
+  '/auth/login','/auth/login/','/auth/' paths inexistentes. Rota real /api/v1/login. Entradas mortas.
+
+[4.4] back/api/app.py:127 | PATH
+  '/api/v1/login/' correto mas duplicado com '/api/v1/auth/login' inexistente.
+
+[4.5] back/api/app.py:133 | SEGURANCA/POST
+  Falta '/api/v1/login/recuperar/','/api/v1/login/redefinir/' -> fluxo anonimo RF03 exige CSRF -> 403 bloqueia recuperacao.
+
+[4.6] back/api/app.py:135 | SEGURANCA
+  Comparacao exata nao cobre /docs/ vs /docs; nao isenta corretamente.
+
+CORS back/api/app.py:93-99 allow_methods sem PUT, allow_headers so Content-Type,Authorization,X-CSRF-Token faltando x-signature,x-request-id do webhook.
+
+================================================================================
+5. LOGIN / LOGOUT / TOKENS / REFRESH
+================================================================================
+[5.1] back/api/security.py:70-82 vs front/src/lib/api.ts:96-110 | TOKEN/LOGIN
+  oauth2_scheme tokenUrl '/api/v1/login/' nunca lido; get_current_user prefere Cookie(access_token). Inconsistencia doc.
+
+[5.2] back/api/services/token_services.py:123 | SEGURANCA/LOGOUT
+  print('access_token:', ...) vaza JWT em logs producao.
+
+[5.3] back/api/routers/auth.py:72-78 | TOKEN
+  refresh_session nao verifica token_type='refresh' corretamente se payload sem token_type -> permite refresh com access token.
+
+[5.4] back/api/routers/auth.py:139-145 vs back/api/security.py:129-148 | LOGOUT/SEGURANCA
+  logout com T_OptionalCurrentUser nao exige auth; delete_auth_cookies sem max_age/httponly identico -> cookie persiste Safari.
+
+[5.5] back/api/security.py:117-126 | TOKEN/SEGURANCA
+  csrf_token max_age 7d vs access 30min -> janela CSRF valido sessao expirada.
+
+[5.6] front/src/lib/api.ts:72-78 | LOGIN/TOKEN
+  if (!res.ok) throw antes de if (res.status===401) refresh -> refresh inalcancavel. 401 nunca renova.
+
+[5.7] front/src/lib/api.ts:73-77 | LOGIN
+  if (refreshOk) truthy mesmo 401 -> sempre return apiFetch loop infinito potencial.
+
+[5.8] back/api/settings.py:31-32 | LOGIN/SEGURANCA
+  SMPT_USER / SMTP_PASSORD typo -> smtp_configurado() sempre falso, e-mail nunca envia.
+
+[5.9] back/api/services/token_services.py:144-152 vs back/api/repositories/password_resets_repository.py | TOKEN/TABELA
+  criar com usado_em None correto, mas lifespan pode nao garantir tabela password_resets se migration 005 falhar -> reset falha.
+
+================================================================================
+6. QUERIES - COLUNAS INEXISTENTES / OPERADORES ERRADOS
+================================================================================
+[6.1] back/api/repositories/sql_repository.py:128-132 | QUERY/POST
+  build_insert RETURNING id, {campos_str} onde campos_str ja contem id -> RETURNING id, id, nome... duplicate column -> 500 em todo criar().
+
+[6.2] back/api/repositories/sql_repository.py:46-55 | QUERY/GET
+  ILIKE em BIGINT/INTEGER/DATE/BOOLEAN (ex: clientes id ILIKE, programacao id/ativo/profissional_id ILIKE, agendamentos sinal ILIKE) -> operator does not exist: bigint ~~ unknown -> 500 em GET filtrado.
+
+[6.3] back/api/repositories/clientes_repository.py:20-24 | QUERY/GET
+  mapa_filtros incompleto: molde, cpf, data_nascimento, pref_* nao mapeados; nome usa IGUAL exato front espera parcial -> busca nao encontra.
+
+[6.4] back/api/repositories/agendamentos_repository.py:18-25 | QUERY/GET
+  sem data no mapa -> GET ?data= filtrado com IGUAL default funciona mas sem ILIKE correto - baixa gravidade.
+
+[6.6] back/api/repositories/nail_designs_repository.py:1 | TABELA
+  Classe NailDesingsRepository typo Desings vs nail_designs -> confusao manutencao.
+
+[6.7] back/api/repositories/status_pagamentos_repository.py:5 | TABELA
+  StatusPagementosRepository typo Pagementos -> inconsistente.
+
+[6.9] back/api/security.py:160-167 | QUERY/SEGURANCA
+  SELECT type_user_id FROM administradores NULL -> or 1 fallback pode liberar privilegio indevido.
+
+================================================================================
+7. SERVICES - 404 vs 200 LISTA VAZIA
+================================================================================
+[7.1] back/api/services/programacao_semanal_services.py:66-78 | GET
+  get_programacao_semanal retorna [] correto (sem 404).
+
+[7.2] Todos get_* (clientes, agendamentos, modelos, notificacoes) retornam [] correto.
+
+[7.3] back/api/services/clientes_services.py:88-101 | GET/SEGURANCA
+  get_clientes nao exige current_user admin -> qualquer autenticado lista clientes (vazamento).
+
+[7.5] back/api/routers/nail_designs.py:55-64 | GET/SEGURANCA
+  get_nail_designs exige current_user admin -> front publico 401 inesperado (modelos_unhas publico OK).
+
+================================================================================
+8. VALIDACOES PYDANTIC 422
+================================================================================
+[8.1] back/api/schemas/usuarios_schemas.py:28-31 | GET/422
+  UsuarioFilter nome: str required sem default -> GET /usuarios?email= sem nome -> 422.
+
+[8.2] back/api/schemas/usuarios_schemas.py:5-8 | POST/422
+  UsuarioBase nome/email/password required; front registerApi envia {email,password} sem nome -> 422 cadastro publico.
+
+[8.4] back/api/schemas/clientes_schemas.py:6-9 | POST
+  cpf opcional mas DB clientes.cpf VARCHAR(14) sem unique -> duplicata permitida; telefone required mas normalizado via _apenas_digitos OK.
+
+[8.5] back/api/schemas/modelos_unhas_schemas.py:5-13 | POST/422
+  duracao: time exige HH:MM:SS; se enviar "1h30" -> 422.
+
+[8.7] back/api/schemas/bloqueios_schemas.py:6-8 | POST/422
+  motivo: str sem min_length -> "" passa e DB NOT NULL falha 500.
+
+================================================================================
+9. LIFESPAN, SETTINGS, DATABASE, SEED
+================================================================================
+[9.1] back/api/app.py:33-43 | TABELA/QUERY
+  glob migrations/*.sql + pool.execute(sql) executa arquivo inteiro com multiplos CREATE/DO $$ -> asyncpg execute so 1o statement -> migrations parcialmente aplicadas -> password_resets/notificacoes ausentes 500.
+
+[9.2] back/api/app.py:49-59 | SEGURANCA
+  settings.ENVIRONMENT default 'dev' -> docs expostos em prod se env nao setado.
+
+[9.4] back/api/settings.py:48-51 | SEGURANCA
+  COOKIE samesite='lax' lowercase pode ser rejeitado (FastAPI normaliza mas Starlette pode).
+
+[9.6] back/api/seed.py:57-70 | TABELA
+  ON CONFLICT DO NOTHING sem alvo depende de unique (profissional_id,dia_semana) -> se migration falhou syntax error.
+
+[9.7] back/api/services/agendamentos_services.py:49-54 | POST/QUERY
+  existe_conflito({horario}) sem data DATE -> dois clientes dias diferentes mesmo horario colidem 409 falso.
+
+[9.8] back/api/services/pagamentos_services.py:226-230 | QUERY/TABELA
+  consultar_pagamento reusa _definir_status_agendamento com 'approved' hardcoded mesmo se pending -> nunca pendente.
+
+[9.9] back/api/services/email_service.py:28-31 | SEGURANCA/LOGIN
+  SMTP_USE_SSL true default + SMTP_PORT 587 TLS incompativel -> Gmail 587 com SSL falha, e-mail nunca envia.
+
+================================================================================
+CHECKLIST FOCO
+================================================================================
+1. 422 programacao-semanal -> itens 1.1-1.4 (campos renomeados, pausa_duracao faltante).
+2. Catalogo sem botao -> itens 2.1-2.3 (is_admin tabela errada + seed).
+3. Trailing slash 307 -> itens 3.1-3.18 (6 POST criticos com 307).
+4. CSRF exempt_paths -> itens 4.2-4.5 (sem barra, paths fantasmas, falta recuperar).
+5. Login/logout/tokens -> itens 5.2 vazamento, 5.6 refresh inalcancavel, 5.8 typo SMTP.
+6. Colunas inexistentes -> itens 6.1 duplicate id, 6.2 ILIKE bigint.
+7. 404 vs 200 -> 7.1-7.2 correto, 7.5 nail_designs exige auth indevido.
+8. Pydantic 422 -> 8.1 UsuarioFilter.nome required, 8.2 register sem nome.
+
+Total: 45+ erros catalogados com localizacao exata arquivo:linha.
+Nenhum arquivo foi modificado nesta analise.

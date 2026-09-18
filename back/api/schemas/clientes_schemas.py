@@ -6,10 +6,10 @@ from datetime import date
 class ClienteBase(BaseModel):
     nome: str
     telefone: str
-    email_id: int | None = None
-    molde: str | None = None
-    cpf: str | None = None
-    data_nascimento: date | None = None
+    email_id: int
+    molde: str
+    cpf: str 
+    data_nascimento: date 
     pref_app: bool | None = True
     pref_email: bool | None = True
     pref_whatsapp: bool | None = False

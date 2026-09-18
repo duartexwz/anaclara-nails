@@ -3,7 +3,7 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
-from api.repositories.status_pagamentos_repository import StatusPagementosRepository
+from api.repositories.status_pagamentos_repository import StatusPagamentosRepository
 from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 from api.schemas.status_pagamentos_schemas import (
@@ -16,7 +16,7 @@ from api.schemas.status_pagamentos_schemas import (
 # Cria a classe dos serviços de status de pagamentos (regras, validações e etc)
 class StatusPagamentosServices:
     def __init__(self):
-        self.status_pagamentos_repository = StatusPagementosRepository()
+        self.status_pagamentos_repository = StatusPagamentosRepository()
 
 
     async def create_status_pagamento(

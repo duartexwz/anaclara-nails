@@ -19,17 +19,19 @@ from api.settings import settings
 DIAS_UTEIS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta']
 
 
+
+
 async def seed_admin(pool: asyncpg.Pool, email: str, senha: str, nome: str) -> None:
     async with pool.acquire() as conn:
         existente = await conn.fetchrow(
-            'SELECT id FROM usuarios WHERE email = $1', email
+            'SELECT id FROM administradores WHERE email = $1', email
         )
         if existente:
             print(f'Admin já existe (usuarios.id={existente["id"]}) — pulando.')
             return
         row = await conn.fetchrow(
             """
-            INSERT INTO usuarios (nome, email, password, type_user_id)
+            INSERT INTO administradores (nome, email, password, type_user_id)
             VALUES ($1, $2, $3, 1)
             RETURNING id
             """,
@@ -37,28 +39,28 @@ async def seed_admin(pool: asyncpg.Pool, email: str, senha: str, nome: str) -> N
             email,
             get_password_hash(senha),
         )
-        print(f'Admin criado (usuarios.id={row["id"]}).')
+        print(f'Admin criado (administradores.id={row["id"]}).')
 
 
 async def seed_programacao(pool: asyncpg.Pool) -> None:
     async with pool.acquire() as conn:
         prof = await conn.fetchrow(
-            "SELECT id FROM nail_designs ORDER BY id LIMIT 1"
+            "SELECT id FROM nails_designs ORDER BY id LIMIT 1"
         )
         if not prof:
             prof = await conn.fetchrow(
                 """
-                INSERT INTO nail_designs (nome, cpf, telefone)
-                VALUES ('Ana Clara', '00000000000', '')
+                INSERT INTO nails_designs (nome, cpf, telefone)
+                VALUES ('Ana Clara', '06947029198', '61985092748') 
                 RETURNING id
                 """
             )
-            print(f"Profissional criada (nail_designs.id={prof['id']}).")
+            print(f"Profissional criada (nails_designs.id={prof['id']}).")
         for dia in DIAS_UTEIS:
             await conn.execute(
                 """
                 INSERT INTO programacao_semanal
-                    (profissional_id, dia_semana, ativo,
+                    (profissional_id, dia_da_semana, ativo,
                      inicio_expediente, fim_expediente, pausa_duracao,
                      intervalo_minutos)
                 VALUES ($1, $2, TRUE, '09:00', '18:00', '01:00', 90)

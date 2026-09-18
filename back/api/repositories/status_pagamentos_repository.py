@@ -2,7 +2,7 @@ from api.repositories.sql_repository import QueryRepository
 from api.schemas.enums import Operador
 
 
-class StatusPagementosRepository(QueryRepository):
+class StatusPagamentosRepository(QueryRepository):
     table_name = 'status_pagamentos'
     campos = {
         'id',

@@ -93,7 +93,7 @@ export async function loginApi(
   senha: string,
 ): Promise<UsuarioApi> {
   const corpo = new URLSearchParams({ username: email, password: senha });
-  const res = await fetch(`${API_URL}/api/v1/login`, {
+  const res = await fetch(`${API_URL}/api/v1/login/`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -121,6 +121,7 @@ export async function meApi(): Promise<UsuarioApi> {
 }
 
 export async function registerApi(dados: {
+  nome: string;
   email: string;
   password: string;
 }): Promise<{ id: number; email: string }> {
@@ -176,7 +177,7 @@ export async function criarAgendamentoApi(dados: {
   sinal: number;
   data?: string;
 }): Promise<AgendamentoApi> {
-  return apiFetch<AgendamentoApi>("/api/v1/agendamentos/", {
+  return apiFetch<AgendamentoApi>("/api/v1/agendamentos", {
     method: "POST",
     body: JSON.stringify(dados),
   });
@@ -184,7 +185,7 @@ export async function criarAgendamentoApi(dados: {
 
 export async function listarAgendamentosApi(): Promise<AgendamentoApi[]> {
   const data = await apiFetch<{ agendamentos: AgendamentoApi[] }>(
-    "/api/v1/agendamentos/",
+    "/api/v1/agendamentos",
   );
   return data.agendamentos ?? [];
 }
@@ -302,7 +303,7 @@ export async function listarClientesApi(params?: {
     ),
   ).toString();
   const data = await apiFetch<{ clientes: ClienteApi[] }>(
-    `/api/v1/clientes/${qs ? `?${qs}` : ""}`,
+    `/api/v1/clientes${qs ? `?${qs}` : ""}`,
   );
   return data.clientes ?? [];
 }
@@ -312,7 +313,7 @@ export async function criarClienteApi(dados: {
   telefone: string;
   email_id?: number | null;
 }): Promise<ClienteApi> {
-  return apiFetch<ClienteApi>("/api/v1/clientes/", {
+  return apiFetch<ClienteApi>("/api/v1/clientes", {
     method: "POST",
     body: JSON.stringify(dados),
   });
@@ -344,7 +345,7 @@ export async function atualizarClienteApi(
 export type ProgramacaoApi = {
   id: number;
   profissional_id: number;
-  dia_semana: string;
+  dia_semana: number;
   ativo: boolean;
   inicio_expediente: string;
   fim_expediente: string;
@@ -354,20 +355,21 @@ export type ProgramacaoApi = {
 
 export async function listarProgramacaoApi(): Promise<ProgramacaoApi[]> {
   const data = await apiFetch<{ programacoes_semanais: ProgramacaoApi[] }>(
-    "/api/v1/programacao-semanal/",
+    "/api/v1/programacao-semanal",
   );
   return data.programacoes_semanais ?? [];
 }
 
 export async function criarProgramacaoApi(dados: {
   profissional_id: number;
-  dia_semana: string;
+  dia_semana: number;
   ativo: boolean;
   inicio_expediente: string;
   fim_expediente: string;
+  pausa_duracao: string
   intervalo_minutos?: number | null;
 }): Promise<ProgramacaoApi> {
-  return apiFetch<ProgramacaoApi>("/api/v1/programacao-semanal/", {
+  return apiFetch<ProgramacaoApi>("/api/v1/programacao-semanal", {
     method: "POST",
     body: JSON.stringify(dados),
   });
@@ -397,7 +399,7 @@ export type BloqueioApi = { id: number; data: string; motivo: string };
 
 export async function listarBloqueiosApi(): Promise<BloqueioApi[]> {
   const data = await apiFetch<{ bloqueios: BloqueioApi[] }>(
-    "/api/v1/bloqueios/",
+    "/api/v1/bloqueios",
   );
   return data.bloqueios ?? [];
 }
@@ -406,7 +408,7 @@ export async function criarBloqueioApi(dados: {
   data: string;
   motivo: string;
 }): Promise<BloqueioApi> {
-  return apiFetch<BloqueioApi>("/api/v1/bloqueios/", {
+  return apiFetch<BloqueioApi>("/api/v1/bloqueios", {
     method: "POST",
     body: JSON.stringify(dados),
   });
@@ -428,7 +430,7 @@ export type MensagemApi = {
 
 export async function listarMensagensApi(): Promise<MensagemApi[]> {
   const data = await apiFetch<{ mensagens: MensagemApi[] }>(
-    "/api/v1/mensagens/?limit=50",
+    "/api/v1/mensagens?limit=50",
   );
   return data.mensagens ?? [];
 }
@@ -438,7 +440,7 @@ export async function enviarMensagemApi(dados: {
   agendamento_id?: number | null;
   remetente: string;
 }): Promise<MensagemApi> {
-  return apiFetch<MensagemApi>("/api/v1/mensagens/", {
+  return apiFetch<MensagemApi>("/api/v1/mensagens", {
     method: "POST",
     body: JSON.stringify(dados),
   });
@@ -451,7 +453,7 @@ export async function listarStatusApi(): Promise<
 > {
   try {
     const data = await apiFetch<{ status_pagamentos: { id: number; nome: string }[] }>(
-      "/api/v1/status-pagamentos/",
+      "/api/v1/status-pagamentos",
     );
     return data.status_pagamentos ?? [];
   } catch {
@@ -491,7 +493,7 @@ export type PagamentoApi = {
 export async function criarPagamentoApi(
   dados: PagamentoBrickPayload,
 ): Promise<PagamentoApi> {
-  return apiFetch<PagamentoApi>("/api/v1/pagamentos/", {
+  return apiFetch<PagamentoApi>("/api/v1/pagamentos", {
     method: "POST",
     body: JSON.stringify(dados),
   });
@@ -531,7 +533,7 @@ export async function listarNotificacoesApi(
 ): Promise<NotificacaoApi[]> {
   const qs = somenteNaoLidas ? "?lida=false" : "";
   const data = await apiFetch<{ notificacoes: NotificacaoApi[] }>(
-    `/api/v1/notificacoes/${qs}`,
+    `/api/v1/notificacoes${qs}`,
   );
   return data.notificacoes ?? [];
 }

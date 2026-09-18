@@ -39,7 +39,7 @@ T_OptionalCurrentUser = Annotated[
 ]
 
 @router.post(
-    '',
+    '/',
     summary='Autenticar usuário',
     response_model=LoginResponse
 )

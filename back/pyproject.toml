@@ -79,7 +79,7 @@ asyncio_mode = 'auto'
 pythonpath = ['.']
 
 [tool.taskipy.tasks]
-dev = "uvicorn app.main:app --reload"
+dev = "uvicorn api.app:app --reload"
 lint = "ruff check ."
 lint-fix = "ruff check . --fix"
 format = "ruff format ."

@@ -15,6 +15,7 @@ class UsuarioRepository(QueryRepository):
     mapa_filtros = {
         'id': Operador.IGUAL,
         'email': Operador.ILIKE,
+        'nome': Operador.ILIKE,
         'password': Operador.ILIKE,
         'type_user_id': Operador.IGUAL
     }

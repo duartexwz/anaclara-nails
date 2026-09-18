@@ -1,11 +1,11 @@
 from datetime import date
 
-from pydantic import ConfigDict, BaseModel
+from pydantic import ConfigDict, BaseModel, Field
 
 
 class BloqueioBase(BaseModel):
     data: date
-    motivo: str
+    motivo: str = Field(min_length=10)
 
 class BloqueioResponse(BloqueioBase):
     id: int

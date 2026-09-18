@@ -37,7 +37,7 @@ class AdministradoresServices:
         if (
             administradores.nome and await
             self.administradores_repository.existe(
-                db, 'email', administradores.nome
+                db, 'nome', administradores.nome
             )
         ):
             raise HTTPException(

@@ -35,6 +35,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Clock, Ban, Plus, CalendarDays, Info, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { string } from "zod";
 
 export const Route = createFileRoute("/admin/horarios")({
   head: () => ({
@@ -51,10 +52,6 @@ export const Route = createFileRoute("/admin/horarios")({
 });
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
-
-function normalizarDia(s: string): string {
-  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-}
 
 type DiaForm = {
   rowId: number | null;
@@ -86,6 +83,10 @@ function Horarios() {
     queryFn: listarAgendamentosApi,
   });
 
+
+  function normalizarDia(dia: string | number){
+    return String(dia).trim().toLocaleLowerCase();
+  }
   const rows = programacaoQuery.data ?? [];
   const porDia = new Map<string, ProgramacaoApi>();
   for (const r of rows) porDia.set(normalizarDia(r.dia_semana), r);
@@ -112,13 +113,15 @@ function Horarios() {
 
   const persistirDia = async (d: DiaForm, patch: Partial<DiaForm>) => {
     const proximo = { ...d, ...patch };
+    console.log(proximo)
     setSalvandoDia(d.dia);
     try {
       const payload = {
-        dia_semana: proximo.dia,
+        dia_semana: DIA_PARA_NUMERO[proximo.dia] ?? 0,
         ativo: proximo.ativo,
         inicio_expediente: `${proximo.inicio}:00`.slice(0, 8),
         fim_expediente: `${proximo.fim}:00`.slice(0, 8),
+        pausa_duracao: `${proximo.pausa}:00`.slice(0, 8),
         intervalo_minutos: proximo.intervalo,
       };
       if (proximo.rowId == null) {
@@ -184,17 +187,41 @@ function Horarios() {
       .filter((a) => a.data === amanha)
       .map((a) => `${a.data}|${a.horario.slice(0, 8)}`),
   );
+  const DIA_PARA_NUMERO: Record<string, number> = {
+  Domingo: 0,
+  Segunda: 1,
+  Terça: 2,
+  Quarta: 3,
+  Quinta: 4,
+  Sexta: 5,
+  Sabado: 6,
+  Sábado: 6,
+};
+
+const programacoes: ProgramacaoApi[] = dias
+  .map((d, i): ProgramacaoApi | null => {
+
+    const diaSemana = DIA_PARA_NUMERO[d.dia];
+
+    if (diaSemana === undefined) {
+      return null;
+    }
+
+    return {
+    id: i,
+    profissional_id: 1,
+    dia_semana: diaSemana,
+    ativo: Boolean(d.ativo),
+    inicio_expediente: `${d.inicio}:00`,
+    fim_expediente: `${d.fim}:00`,
+    pausa_duracao: `${d.pausa}:00`,
+    intervalo_minutos: Number(d.intervalo),
+    };
+  })
+  .filter((item): item is ProgramacaoApi => item !== null);
+
   const previa = gerarSlots(
-    dias.map((d, i) => ({
-      id: i,
-      profissional_id: 1,
-      dia_semana: d.dia,
-      ativo: d.ativo,
-      inicio_expediente: `${d.inicio}:00`,
-      fim_expediente: `${d.fim}:00`,
-      pausa_duracao: "01:00:00",
-      intervalo_minutos: d.intervalo,
-    })),
+    programacoes,
     bloqueios,
     ocupadosAmanha,
   ).filter((s) => s.dataISO === amanha);

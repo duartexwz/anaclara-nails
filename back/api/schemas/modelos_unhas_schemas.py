@@ -1,4 +1,4 @@
-from pydantic import ConfigDict, BaseModel
+from pydantic import ConfigDict, BaseModel, field_validator
 from datetime import time
 from typing import Optional
 
@@ -11,6 +11,18 @@ class ModeloUnhaBase(BaseModel):
     imagem_url: Optional[str] = None
     ativo: bool = True
     destaque: bool = False
+
+    @field_validator("duracao", mode='before')
+    @classmethod
+    def parse_duracao(cls, value):
+        partes = value.split(':')
+        if len(partes) == 2:
+            return time(int(partes[0]), int(partes[1]))
+        elif len(partes) == 3:
+            return time(int(partes[0]), int(partes[1]),
+            int(partes[2])
+            )
+        return value
 
 class ModeloUnhaResponse(ModeloUnhaBase):
     id: int

@@ -30,6 +30,7 @@ from api.security import (
 )
 from api.services.email_service import enviar_email_recuperacao
 from api.settings import settings
+from api.schemas.enums import TypeUserEnum
 
 oauth2_scheme = Annotated[OAuth2PasswordRequestForm, Depends()]
 
@@ -65,10 +66,12 @@ class TokenServices:
                     status_code=HTTPStatus.UNAUTHORIZED
                 )
             return await self._emitir_sessao(
-                admin_record['id'], admin_record['email'], 1,
-                is_admin=True
+                admin_record['id'], admin_record['nome'],
+                admin_record['email'],
+                type_user_id=admin_record['type_user_id'],
+                is_admin=True, 
             )
-
+        
         # 2. TABELA USUÁRIOS → LOGIN DE USUÁRIO (USER)
         user_record = await self.token_repository.buscar_por_email(
             db, email
@@ -85,14 +88,17 @@ class TokenServices:
                 detail='Usuário ou senha inválidos',
                 status_code=HTTPStatus.UNAUTHORIZED
             )
+        
 
         return await self._emitir_sessao(
-            user_record['id'], user_record['email'],
-            user_record['type_user_id'], is_admin=False
+            user_record['id'], user_record['nome'],
+            user_record['email'],
+            type_user_id=user_record['type_user_id'],
+            is_admin=user_record['type_user_id'] == TypeUserEnum.ADMIN.value
         )
 
     async def _emitir_sessao(
-        self, user_id: int, email: str, type_user_id: int,
+        self, user_id: int, nome: str, email: str, type_user_id: int,
         is_admin: bool
     ) -> dict:
         access_token = await create_access_token(
@@ -110,6 +116,7 @@ class TokenServices:
 
         user = UsuarioLogado(
             id=user_id,
+            nome=nome,
             email=email,
             type_user_id=type_user_id,
             is_admin=is_admin

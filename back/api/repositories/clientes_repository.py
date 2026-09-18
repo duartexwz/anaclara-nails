@@ -18,8 +18,14 @@ class ClientesRepository(QueryRepository):
     }
 
     mapa_filtros = {
-        'id': Operador.ILIKE,
-        'nome': Operador.IGUAL,
-        'telefone': Operador.IGUAL,
-        'email_id': Operador.ILIKE
+        'id': Operador.IGUAL,
+        'nome': Operador.ILIKE,
+        'telefone': Operador.ILIKE,
+        'email_id': Operador.IGUAL,
+        'molde': Operador.ILIKE,
+        'cpf': Operador.ILIKE,
+        'data_nascimento': Operador.ILIKE,
+        'pref_app': Operador.IGUAL,
+        'pref_email': Operador.IGUAL,
+        'pref_whatsapp': Operador.IGUAL
     }

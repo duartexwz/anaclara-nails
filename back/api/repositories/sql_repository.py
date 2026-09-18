@@ -46,6 +46,7 @@ class SqlQueryBuilder:
         if operador == Operador.ILIKE:
             # ILIKE faz a busca parcial: envolve o valor com %...%
             param_valor = self.__add_param(f'%{valor}%')
+            f'{campo}::text {operador.value} ${param_valor}'
 
         else:
             param_valor = self.__add_param(valor)
@@ -129,7 +130,7 @@ class SqlQueryBuilder:
         query = f'''
         INSERT INTO {self.table_name} ({', '.join(colunas)})
         VALUES ({', '.join(placeholders)})
-        RETURNING id, {campos_str}
+        RETURNING {campos_str}
         '''
 
         return query, self.params

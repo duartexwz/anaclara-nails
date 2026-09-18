@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { loginApi, logoutApi, meApi, registerApi } from "./api";
+import { NonBinary } from "lucide-react";
 
 /**
  * Sessão real via API (RF01/RF02/RF18).
@@ -75,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const cadastrar = async (nome: string, email: string, senha: string) => {
-    await registerApi({ email, password: senha });
+    await registerApi({ nome: nome, email: email, password: senha });
     const u = await loginApi(email, senha);
     const base = mapearUsuario(u);
     setUsuario(nome.trim() ? { ...base, nome: nome.trim() } : base);

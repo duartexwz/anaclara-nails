@@ -21,7 +21,7 @@ from api.schemas.global_schemas import UsuarioLogado
 from api.settings import settings
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl='/login/',
+    tokenUrl='/api/v1/login/',
     auto_error=False
 )
 Token = Annotated[str | None, Depends(oauth2_scheme)]
@@ -30,7 +30,7 @@ Database = Annotated[Connection, Depends(get_db)]
 password_hash = PasswordHash.recommended()
 
 ACCESS_LEVEL_ORDER = {
-    TypeUserEnum.ADMIN.value: 1,
+    TypeUserEnum.ADMIN.value: 999,
     TypeUserEnum.USER.value: 1
 }
 
@@ -160,6 +160,7 @@ async def get_user_by_email(
     query_admin = '''
     SELECT
         id,
+        nome,
         email,
         type_user_id
     FROM administradores WHERE email = $1
@@ -172,8 +173,31 @@ async def get_user_by_email(
     if admin_record:
         return UsuarioLogado(
             id=admin_record['id'],
+            nome=admin_record['nome'],
             email=admin_record['email'],
             type_user_id=admin_record['type_user_id'] or 1,
+            is_admin=True
+        )
+
+    query_admin_in_usuarios = '''
+    SELECT 
+        id,
+        nome,
+        email,
+        type_user_id
+    FROM usuarios WHERE email = $1 AND type_user_id = $2
+    '''
+
+    admin_record_in_usuarios = await db.fetchrow(
+        query_admin_in_usuarios, email, TypeUserEnum.ADMIN.value
+    )
+
+    if admin_record_in_usuarios:
+        return UsuarioLogado(
+            id=admin_record_in_usuarios['id'],
+            nome=admin_record_in_usuarios['nome'],
+            email=admin_record_in_usuarios['email'],
+            type_user_id=admin_record_in_usuarios['type_user_id'] or 1,
             is_admin=True
         )
 
@@ -260,7 +284,7 @@ def requer_nivel_acesso(
     async def verificar(
         current_user: Annotated[dict, Depends(get_current_user)]
     ):
-        user_order = ACCESS_LEVEL_ORDER.get(current_user.type_user, 0)        
+        user_order = ACCESS_LEVEL_ORDER.get(current_user.type_user_id, 0)        
         required_order = ACCESS_LEVEL_ORDER.get(nivel_minimo.value, 999)
 
         if user_order < required_order:

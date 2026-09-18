@@ -9,13 +9,13 @@ from api.repositories.administradores_repository import (
 from api.repositories.agendamentos_repository import AgendamentosRepository
 from api.repositories.clientes_repository import ClientesRepository
 from api.repositories.modelos_unhas_repository import ModelosUnhasRepository
-from api.repositories.nail_designs_repository import NailDesingsRepository
+from api.repositories.nail_designs_repository import NailDesignsRepository
 from api.repositories.programacao_semanal_repository import (
     ProgramacaoSemanalRepository,
 )
 from api.repositories.sql_repository import QueryRepository, SqlQueryBuilder
 from api.repositories.status_pagamentos_repository import (
-    StatusPagementosRepository,
+    StatusPagamentosRepository,
 )
 from api.repositories.token_repository import LoginForAccessTokenRepository
 from api.repositories.usuarios_repository import UsuarioRepository
@@ -197,14 +197,14 @@ REPOSITORIOS = [
     (ClientesRepository, 'clientes', ClienteFilter()),
     (AgendamentosRepository, 'agendamentos', AgendamentoFilter()),
     (ModelosUnhasRepository, 'modelos_unhas', ModeloUnhaFilter()),
-    (NailDesingsRepository, 'nail_designs', NailDesignFilter()),
+    (NailDesignsRepository, 'nail_designs', NailDesignFilter()),
     (
         ProgramacaoSemanalRepository,
         'programacao_semanal',
         ProgramacaoSemanalFilter(),
     ),
     (
-        StatusPagementosRepository,
+        StatusPagamentosRepository,
         'status_pagamentos',
         StatusPagamentoFilter(),
     ),

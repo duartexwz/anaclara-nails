@@ -10,6 +10,7 @@ class ProgramacaoSemanalBase(BaseModel):
     inicio_expediente: time
     fim_expediente: time
     pausa_duracao: time
+    intervalo_minutos: int
 
 
 class ProgramacaoSemanalResponse(ProgramacaoSemanalBase):
@@ -20,6 +21,7 @@ class ProgramacaoSemanalResponse(ProgramacaoSemanalBase):
     inicio_expediente: time
     fim_expediente: time
     pausa_duracao: time
+    intervalo_minutos: int
     model_config = ConfigDict(from_attributes=True)
 
 class ProgramacaoSemanalList(BaseModel):
