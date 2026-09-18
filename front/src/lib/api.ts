@@ -83,6 +83,7 @@ export async function apiFetch<T>(
 
 export type UsuarioApi = {
   id: number;
+  nome: string;
   email: string;
   type_user_id: number;
   is_admin: boolean;
@@ -345,7 +346,7 @@ export async function atualizarClienteApi(
 export type ProgramacaoApi = {
   id: number;
   profissional_id: number;
-  dia_semana: number;
+  dia_semana: string;
   ativo: boolean;
   inicio_expediente: string;
   fim_expediente: string;
@@ -362,7 +363,7 @@ export async function listarProgramacaoApi(): Promise<ProgramacaoApi[]> {
 
 export async function criarProgramacaoApi(dados: {
   profissional_id: number;
-  dia_semana: number;
+  dia_semana: string;
   ativo: boolean;
   inicio_expediente: string;
   fim_expediente: string;

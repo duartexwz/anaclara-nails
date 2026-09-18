@@ -102,7 +102,7 @@ class UsuarioServices:
         # TROCA DE PAPEL SÓ PELO ADMIN (VIA PAINEL)
         if (
             'type_user_id' in dados
-            and current_user.type_user_id != TypeUserEnum.ADMIN
+            and current_user.type_user_id != TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='Apenas administradores podem alterar o papel',

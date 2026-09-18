@@ -112,7 +112,7 @@ class AgendamentosServices:
 
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',
@@ -203,7 +203,7 @@ class AgendamentosServices:
             )
 
         # RF17 — cancela a admin ou a dona do agendamento (via email_id)
-        if current_user.type_user_id != TypeUserEnum.ADMIN:
+        if current_user.type_user_id != TypeUserEnum.ADMIN.value:
             from api.repositories.clientes_repository import (
                 ClientesRepository,
             )

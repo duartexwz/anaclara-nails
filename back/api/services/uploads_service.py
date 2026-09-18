@@ -20,7 +20,7 @@ MIME_POR_EXTENSAO = {
 
 
 def _exigir_admin(current_user: UsuarioLogado) -> None:
-    if current_user.type_user_id != TypeUserEnum.ADMIN:
+    if current_user.type_user_id != TypeUserEnum.ADMIN.value:
         raise HTTPException(
             detail='A ação requer elevação',
             status_code=HTTPStatus.FORBIDDEN,

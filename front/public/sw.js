@@ -6,7 +6,7 @@
  *  - GETs da API: StaleWhileRevalidate (dados carregados mesmo offline)
  *  - POST/PUT/DELETE e terceiros (ex.: Mercado Pago): direto à rede
  */
-const VERSAO = "v1";
+const VERSAO = "v2";
 const CACHE_PAGINAS = `ana-clara-paginas-${VERSAO}`;
 const CACHE_IMAGENS = `ana-clara-imagens-${VERSAO}`;
 const CACHE_ESTATICOS = `ana-clara-estaticos-${VERSAO}`;
@@ -108,7 +108,8 @@ async function rapidoERevalidado(request, cacheNome) {
     if (busca && busca.catch) busca.catch(() => {});
     return emCache;
   }
-  return busca;
+  // Sem cache e rede falhou: nunca devolve undefined ao respondWith.
+  return busca.then((resposta) => resposta ?? Response.error());
 }
 
 self.addEventListener("fetch", (event) => {

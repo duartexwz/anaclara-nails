@@ -30,7 +30,7 @@ router = APIRouter(
 )
 
 @router.post(
-    '/',
+    '',
     summary='Cadastrar um administrador',
     status_code=HTTPStatus.CREATED,
     response_model=AdministradorResponse

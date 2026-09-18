@@ -147,7 +147,7 @@ class ClientesServices:
 
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',

@@ -27,7 +27,7 @@ async def seed_admin(pool: asyncpg.Pool, email: str, senha: str, nome: str) -> N
             'SELECT id FROM administradores WHERE email = $1', email
         )
         if existente:
-            print(f'Admin já existe (usuarios.id={existente["id"]}) — pulando.')
+            print(f'Admin já existe (administradores.id={existente["id"]}) — pulando.')
             return
         row = await conn.fetchrow(
             """
@@ -60,7 +60,7 @@ async def seed_programacao(pool: asyncpg.Pool) -> None:
             await conn.execute(
                 """
                 INSERT INTO programacao_semanal
-                    (profissional_id, dia_da_semana, ativo,
+                    (profissional_id, dia_semana, ativo,
                      inicio_expediente, fim_expediente, pausa_duracao,
                      intervalo_minutos)
                 VALUES ($1, $2, TRUE, '09:00', '18:00', '01:00', 90)

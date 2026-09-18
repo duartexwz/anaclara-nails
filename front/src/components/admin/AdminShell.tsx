@@ -241,7 +241,7 @@ export function AdminShell({
                     AC
                   </span>
                   <div className="hidden leading-tight sm:block">
-                    <p className="text-sm font-medium">{usuario.nome}</p>
+                    <p className="text-sm font-medium">{usuario?.nome}</p>
                     <p className="text-xs text-muted-foreground">Administrador(a)</p>
                   </div>
                 </div>

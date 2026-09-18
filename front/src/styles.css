@@ -150,6 +150,10 @@
   background-image: var(--gradient-primary);
 }
 
+@utility bg-gradient-primary {
+  background-image: var(--gradient-primary);
+}
+
 @utility gradient-soft {
   background-image: var(--gradient-soft);
 }

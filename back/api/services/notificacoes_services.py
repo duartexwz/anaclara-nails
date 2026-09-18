@@ -21,7 +21,7 @@ class NotificacoesServices:
     def _exigir_admin(self, current_user: UsuarioLogado) -> None:
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',

@@ -39,11 +39,11 @@ function nomeDoEmail(email: string): string {
   return nome || "Cliente";
 }
 
-function mapearUsuario(api: { id: number; email: string; type_user_id: number; is_admin: boolean }): Usuario {
+function mapearUsuario(api: { id: number; nome: string; email: string; type_user_id: number; is_admin: boolean }): Usuario {
   return {
     id: api.id,
     email: api.email,
-    nome: nomeDoEmail(api.email),
+    nome: api.nome?.trim() ? api.nome : nomeDoEmail(api.email),
     is_admin: api.is_admin,
     perfil: api.is_admin ? "admin" : "cliente",
   };

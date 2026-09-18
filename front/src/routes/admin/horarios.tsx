@@ -117,7 +117,7 @@ function Horarios() {
     setSalvandoDia(d.dia);
     try {
       const payload = {
-        dia_semana: DIA_PARA_NUMERO[proximo.dia] ?? 0,
+        dia_semana: proximo.dia,
         ativo: proximo.ativo,
         inicio_expediente: `${proximo.inicio}:00`.slice(0, 8),
         fim_expediente: `${proximo.fim}:00`.slice(0, 8),
@@ -187,30 +187,12 @@ function Horarios() {
       .filter((a) => a.data === amanha)
       .map((a) => `${a.data}|${a.horario.slice(0, 8)}`),
   );
-  const DIA_PARA_NUMERO: Record<string, number> = {
-  Domingo: 0,
-  Segunda: 1,
-  Terça: 2,
-  Quarta: 3,
-  Quinta: 4,
-  Sexta: 5,
-  Sabado: 6,
-  Sábado: 6,
-};
-
 const programacoes: ProgramacaoApi[] = dias
-  .map((d, i): ProgramacaoApi | null => {
-
-    const diaSemana = DIA_PARA_NUMERO[d.dia];
-
-    if (diaSemana === undefined) {
-      return null;
-    }
-
+  .map((d): ProgramacaoApi | null => {
     return {
-    id: i,
+    id: d.rowId ?? 0,
     profissional_id: 1,
-    dia_semana: diaSemana,
+    dia_semana: d.dia,
     ativo: Boolean(d.ativo),
     inicio_expediente: `${d.inicio}:00`,
     fim_expediente: `${d.fim}:00`,

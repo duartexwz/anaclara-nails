@@ -11,6 +11,7 @@ from api.schemas.administradores_schemas import (
 )
 from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
+from api.security import get_password_hash
 
 
 class AdministradoresServices:
@@ -27,7 +28,7 @@ class AdministradoresServices:
 
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',
@@ -57,6 +58,9 @@ class AdministradoresServices:
             )
 
         dados = administradores.model_dump()
+        # PAINEL SEMPRE CRIA ADMIN — garante papel e nunca salva senha pura
+        dados['type_user_id'] = TypeUserEnum.ADMIN.value
+        dados['password'] = get_password_hash(dados['password'])
 
         resultado = await self.administradores_repository.criar(
             db, dados
@@ -79,7 +83,7 @@ class AdministradoresServices:
 
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',
@@ -101,7 +105,7 @@ class AdministradoresServices:
     ) -> dict:
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',
@@ -119,6 +123,9 @@ class AdministradoresServices:
             )
 
         dados = administrador.model_dump(exclude_unset=True)
+
+        if dados.get('password'):
+            dados['password'] = get_password_hash(dados['password'])
 
         if not dados:
             raise HTTPException(
@@ -147,7 +154,7 @@ class AdministradoresServices:
 
         if (
             current_user.type_user_id !=
-            TypeUserEnum.ADMIN
+            TypeUserEnum.ADMIN.value
         ):
             raise HTTPException(
                 detail='A ação requer elevação',

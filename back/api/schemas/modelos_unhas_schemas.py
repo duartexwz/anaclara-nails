@@ -15,6 +15,10 @@ class ModeloUnhaBase(BaseModel):
     @field_validator("duracao", mode='before')
     @classmethod
     def parse_duracao(cls, value):
+        if isinstance(value, time):
+            return value
+        if not isinstance(value, str):
+            return value
         partes = value.split(':')
         if len(partes) == 2:
             return time(int(partes[0]), int(partes[1]))

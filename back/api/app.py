@@ -94,7 +94,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS' 'PUT', ],
+    allow_methods=['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS', 'PUT', ],
     allow_headers=[
         'Content-Type',
         'Authorization',
@@ -128,11 +128,11 @@ app.include_router(api_v1)
 @app.middleware('http')
 async def csrf_cookie_protection(request: Request, call_next):
     exempt_paths = {
-        '/api/v1/login/', '/api/v1/login/recuperar',
-        '/api/v1/usuarios/', '/api/v1/login/redefinir/'
-        '/docs/', '/openapi.json',
+        '/api/v1/login/', '/api/v1/login/recuperar/',
+        '/api/v1/usuarios', '/api/v1/login/redefinir/',
+        '/docs', '/docs/', '/openapi.json',
         '/acompanhar/agendamento', '/api/v1/pagamentos/webhook',
-        '/api/v1/administradores/',
+        '/api/v1/administradores',
     }
 
     if request.url.path in exempt_paths or request.method in ('GET', 'HEAD', 'OPTIONS'):
