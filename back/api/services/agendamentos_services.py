@@ -45,9 +45,12 @@ class AgendamentosServices:
                 status_code=HTTPStatus.UNPROCESSABLE_ENTITY
             )
 
-        # RN06 - não é possível agendar em horário já reservado
+        # RN06 - não é possível agendar em horário já reservado no mesmo dia
+        conflito_horario: dict = {'horario': agendamento.horario}
+        if agendamento.data is not None:
+            conflito_horario['data'] = agendamento.data
         if await self.agendamentos_repository.existe_conflito(
-            db, {'horario': agendamento.horario}
+            db, conflito_horario
         ):
             raise HTTPException(
                 detail='Horário já reservado por outro cliente',
@@ -137,17 +140,23 @@ class AgendamentosServices:
                 status_code=HTTPStatus.BAD_REQUEST
             )
 
-        # RN06 - a remarcação também não pode colidir com outro horário
-        if 'horario' in dados and await (
-            self.agendamentos_repository.existe_conflito(
-                db, {'horario': dados['horario']},
+        # RN06 - a remarcação também não pode colidir no mesmo dia
+        if 'horario' in dados or 'data' in dados:
+            conflito_remarcar: dict = {}
+            conflito_remarcar['horario'] = dados.get(
+                'horario', atual['horario']
+            )
+            data_ref = dados.get('data', atual.get('data'))
+            if data_ref is not None:
+                conflito_remarcar['data'] = data_ref
+            if await self.agendamentos_repository.existe_conflito(
+                db, conflito_remarcar,
                 excluir_id=agendamento_id
-            )
-        ):
-            raise HTTPException(
-                detail='Horário já reservado por outro cliente',
-                status_code=HTTPStatus.CONFLICT
-            )
+            ):
+                raise HTTPException(
+                    detail='Horário já reservado por outro cliente',
+                    status_code=HTTPStatus.CONFLICT
+                )
 
         # RN01 - troca de modelo ou de sinal precisa manter os 50%
         modelo_id = dados.get('modelo_id', atual['modelo_id'])

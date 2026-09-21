@@ -65,6 +65,7 @@ function ControleClientes() {
   const mensagensQuery = useQuery({
     queryKey: ["mensagens"],
     queryFn: listarMensagensApi,
+    refetchInterval: 5000,
   });
 
   const clientes = clientesQuery.data ?? [];

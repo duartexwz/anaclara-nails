@@ -127,12 +127,17 @@ app.include_router(api_v1)
 
 @app.middleware('http')
 async def csrf_cookie_protection(request: Request, call_next):
+    # SESSÃO POR ABA: Authorization Bearer não usa cookies, logo é imune
+    # a CSRF (o navegador nunca o envia sozinho) — segue direto.
+    if request.headers.get('authorization', '').lower().startswith('bearer '):
+        return await call_next(request)
     exempt_paths = {
         '/api/v1/login/', '/api/v1/login/recuperar/',
         '/api/v1/usuarios', '/api/v1/login/redefinir/',
+        '/api/v1/login/refresh', '/api/v1/login/logout/'
         '/docs', '/docs/', '/openapi.json',
         '/acompanhar/agendamento', '/api/v1/pagamentos/webhook',
-        '/api/v1/administradores',
+        '/api/v1/administradores', '/admin/catalogo'
     }
 
     if request.url.path in exempt_paths or request.method in ('GET', 'HEAD', 'OPTIONS'):

@@ -64,7 +64,7 @@ async def seed_programacao(pool: asyncpg.Pool) -> None:
                      inicio_expediente, fim_expediente, pausa_duracao,
                      intervalo_minutos)
                 VALUES ($1, $2, TRUE, '09:00', '18:00', '01:00', 90)
-                ON CONFLICT DO NOTHING
+                ON CONFLICT (profissional_id, dia_semana) DO NOTHING
                 """,
                 prof['id'],
                 dia,

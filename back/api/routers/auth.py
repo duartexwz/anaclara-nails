@@ -14,7 +14,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jwt import DecodeError, ExpiredSignatureError, InvalidTokenError
 
 from api.database import get_db
-from api.schemas.global_schemas import LoginResponse, MessageGlobal, UsuarioLogado
+from api.schemas.global_schemas import (
+    LoginResponse,
+    MeResponse,
+    MessageGlobal,
+    RefreshRequest,
+    UsuarioLogado,
+)
 from api.schemas.password_reset_schemas import RecuperarSenha, RedefinirSenha
 from api.security import (
     create_access_token,
@@ -24,7 +30,6 @@ from api.security import (
     get_current_user,
     get_optional_current_user,
     get_user_by_email,
-    set_auth_cookies,
 )
 from api.services.token_services import TokenServices
 
@@ -44,7 +49,6 @@ T_OptionalCurrentUser = Annotated[
     response_model=LoginResponse
 )
 async def login(
-    response: Response,
     db: T_Session,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -52,18 +56,18 @@ async def login(
         db=db, form_data=form_data
     )
 
-    set_auth_cookies(
-        response,
-        resultado['access_token'],
-        resultado['refresh_token']
-    )
-
-    return {'user': resultado['user']}
+    # SESSÃO POR ABA: tokens vão no corpo (sessionStorage do front);
+    # nenhum cookie é gravado, então janelas não compartilham sessão.
+    return {
+        'user': resultado['user'],
+        'access_token': resultado['access_token'],
+        'refresh_token': resultado['refresh_token'],
+    }
 
 @router.get(
     '/auth/me',
     summary='Retorna o usuário autenticado',
-    response_model=LoginResponse
+    response_model=MeResponse
 )
 async def me(current_user: T_CurrentUser):
     return {'user': current_user}
@@ -75,20 +79,25 @@ async def me(current_user: T_CurrentUser):
     response_model=LoginResponse,
 )
 async def refresh_session(
-    response: Response,
     db: T_Session,
+    dados: RefreshRequest | None = None,
     refresh_token: Annotated[
         str | None, Cookie(alias='refresh_token')
     ] = None
 ):
-    if not refresh_token:
+    # SESSÃO POR ABA: prefere o refresh token do corpo; o cookie segue
+    # aceito por compatibilidade com sessões antigas.
+    subject_token = (
+        dados.refresh_token if dados and dados.refresh_token else None
+    ) or refresh_token
+    if not subject_token:
         raise HTTPException(
             detail='Refresh token ausente',
             status_code=HTTPStatus.UNAUTHORIZED
         )
 
     try:
-        payload = decode_session_token(refresh_token)
+        payload = decode_session_token(subject_token)
         if payload.get('token_type') != 'refresh':
             raise HTTPException(
                 detail='Refresh token inválido',
@@ -123,13 +132,12 @@ async def refresh_session(
         }
     )
 
-    set_auth_cookies(
-        response,
-        access_token,
-        new_refresh_token
-    )
-
-    return {'user': user}
+    # SESSÃO POR ABA: par novo vai no corpo; sem cookies novos.
+    return {
+        'user': user,
+        'access_token': access_token,
+        'refresh_token': new_refresh_token,
+    }
 
 @router.post(
     '/logout/',

@@ -99,7 +99,7 @@ function Horarios() {
       ativo: r ? r.ativo : ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"].includes(dia),
       inicio: r?.inicio_expediente?.slice(0, 5) ?? "09:00",
       fim: r?.fim_expediente?.slice(0, 5) ?? "18:00",
-      pausa: "",
+      pausa: r?.pausa_duracao?.slice(0, 5) ?? "01:00",
       intervalo: r?.intervalo_minutos ?? 90,
     };
   });
@@ -121,7 +121,7 @@ function Horarios() {
         ativo: proximo.ativo,
         inicio_expediente: `${proximo.inicio}:00`.slice(0, 8),
         fim_expediente: `${proximo.fim}:00`.slice(0, 8),
-        pausa_duracao: `${proximo.pausa}:00`.slice(0, 8),
+        pausa_duracao: `${proximo.pausa || "01:00"}:00`.slice(0, 8),
         intervalo_minutos: proximo.intervalo,
       };
       if (proximo.rowId == null) {
@@ -150,6 +150,9 @@ function Horarios() {
     mutationFn: () => {
       if (!novaData || !novoMotivo.trim()) {
         throw new ApiError(400, "Informe data e motivo");
+      }
+      if (novoMotivo.trim().length < 10) {
+        throw new ApiError(400, "Motivo precisa de ao menos 10 caracteres.");
       }
       return criarBloqueioApi({ data: novaData, motivo: novoMotivo.trim() });
     },
@@ -196,7 +199,7 @@ const programacoes: ProgramacaoApi[] = dias
     ativo: Boolean(d.ativo),
     inicio_expediente: `${d.inicio}:00`,
     fim_expediente: `${d.fim}:00`,
-    pausa_duracao: `${d.pausa}:00`,
+    pausa_duracao: `${d.pausa || "01:00"}:00`,
     intervalo_minutos: Number(d.intervalo),
     };
   })
@@ -285,6 +288,11 @@ const programacoes: ProgramacaoApi[] = dias
                         rotulo="Fim"
                         valor={d.fim}
                         onMudar={(v) => void persistirDia(d, { fim: v })}
+                      />
+                      <CampoHora
+                        rotulo="Pausa"
+                        valor={d.pausa}
+                        onMudar={(v) => void persistirDia(d, { pausa: v })}
                       />
                       <div className="flex items-center gap-2">
                         <Label className="text-xs text-muted-foreground">Slot</Label>

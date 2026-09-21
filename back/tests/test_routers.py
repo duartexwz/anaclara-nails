@@ -37,7 +37,7 @@ class TestLogin:
         )
         assert resposta.status_code == 401
 
-    async def test_login_ok_200_com_cookies(self, client, fake_db):
+    async def test_login_ok_200_com_tokens_no_corpo(self, client, fake_db):
         fake_db.queue_fetchrow(None)
         fake_db.queue_fetchrow(
             {
@@ -55,8 +55,11 @@ class TestLogin:
         assert resposta.status_code == 200
         assert resposta.json()['user']['email'] == 'a@mail.com'
         assert 'password' not in resposta.json()['user']
-        assert 'access_token' in resposta.cookies
-        assert 'refresh_token' in resposta.cookies
+        ## SESSÃO POR ABA: tokens no corpo, sem cookies de sessão
+        assert resposta.json()['access_token']
+        assert resposta.json()['refresh_token']
+        assert 'access_token' not in resposta.cookies
+        assert 'refresh_token' not in resposta.cookies
 
     async def test_login_sem_csrf_401(self, client, fake_db):
         ## /login/ É ISENTO DE CSRF POR DESIGN (EXEMPT_PATHS)
@@ -121,10 +124,13 @@ class TestLogin:
         )
         resposta = await client.post(
             '/api/v1/login/auth/refresh',
+            json={'refresh_token': token},
             headers=CSRF_HEADERS,
-            cookies={'refresh_token': token, **CSRF_COOKIES},
+            cookies={**CSRF_COOKIES},
         )
         assert resposta.status_code == 200
+        assert resposta.json()['access_token']
+        assert resposta.json()['refresh_token']
 
     async def test_logout_200(self, client, as_anon):
         resposta = await client.post(

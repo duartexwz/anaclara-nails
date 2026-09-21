@@ -112,6 +112,9 @@ export function ModalPagamento({
           publicKey: chavePublica,
           callbacks: {
             onSubmit: (formData) => enviarBrick(formData),
+            // OBRIGATÓRIO no Bricks 3.x: sem onReady o create() rejeita
+            // com "missing_required_callbacks" antes mesmo de renderizar.
+            onReady: () => {},
             onError: () => {
               if (!cancelado) {
                 setErroMsg("Não foi possível carregar o checkout.");
@@ -128,7 +131,9 @@ export function ModalPagamento({
         desmontar = () => {
           controller.unmount();
         };
-      } catch {
+      } catch (e) {
+        // Loga a causa real (SDK engole detalhes) para diagnóstico no console.
+        console.error("[checkout] falha ao montar o brick:", e);
         if (!cancelado) {
           setErroMsg("Checkout indisponível no momento.");
           setEtapa("erro");

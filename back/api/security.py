@@ -102,6 +102,8 @@ def set_auth_cookies(
         'domain': __cooke_domain(),
         'path': '/',
     }
+
+    DAY_IN_SECONDS = 60 * 60 * 24
     response.set_cookie(
         key='access_token',
         value=access_token,
@@ -111,13 +113,13 @@ def set_auth_cookies(
     response.set_cookie(
         key='refresh_token',
         value=refresh_token,
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 *60,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * DAY_IN_SECONDS,
         **cookie_config
     )
     response.set_cookie(
         key='csrf_token',
         value=token_urlsafe(32),
-        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        max_age=settings.REFRESH_TOKEN_EXPIRE_DAYS * DAY_IN_SECONDS,
         httponly=False,
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
@@ -227,7 +229,7 @@ async def get_current_user(
     access_token: Annotated[
         str | None, Cookie(alias='access_token')] = None
 ) -> UsuarioLogado:
-    session_token = access_token or token
+    session_token = token or access_token
 
     if not session_token:
         raise _credentials_exception()

@@ -85,6 +85,11 @@ export function loadMercadoPagoSdk(): Promise<void> {
       `script[src="${SDK_URL}"]`,
     );
     if (existente) {
+      // Tag já presente (ex.: carregada antes): não espera evento que nunca refira.
+      if (window.MercadoPago) {
+        resolve();
+        return;
+      }
       existente.addEventListener("load", () => resolve());
       existente.addEventListener("error", () =>
         reject(new Error("Falha ao carregar o SDK do Mercado Pago")),
@@ -112,6 +117,9 @@ export async function mountPaymentBrick(options: {
   const publicKey = options.publicKey ?? (await resolvePublicKey());
   if (!publicKey) {
     throw new Error("Public Key do Mercado Pago não configurada");
+  }
+  if (!Number.isFinite(options.amount) || options.amount <= 0) {
+    throw new Error(`Valor inválido para o checkout: ${String(options.amount)}`);
   }
   await loadMercadoPagoSdk();
   if (!window.MercadoPago) {

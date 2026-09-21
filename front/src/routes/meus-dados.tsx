@@ -37,7 +37,7 @@ import {
 } from "@/lib/api";
 import { statusEstilo, brl, fmtDataCurta, mapModeloApi, statusExibicao } from "@/lib/dados";
 import { mascararCpf, mascararTelefone, apenasDigitos } from "@/lib/masks";
-import { Fingerprint, Lock, Save, CalendarX2, History, Loader2 } from "lucide-react";
+import { Fingerprint, Lock, Save, CalendarX2, History, Loader2, DiamondPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/meus-dados")({
@@ -142,8 +142,8 @@ function MeusDados() {
       const dados = {
         nome: nome.trim(),
         telefone: telDigitos,
-        cpf: cpfDigitos || null,
-        data_nascimento: nascimento || null,
+        cpf: cpfDigitos,
+        data_nascimento: nascimento,
         pref_app: prefApp,
         pref_email: prefEmail,
         pref_whatsapp: prefWhatsapp,
@@ -155,6 +155,12 @@ function MeusDados() {
         nome: dados.nome,
         telefone: dados.telefone,
         email_id: usuario.id,
+        cpf: dados.cpf,
+        data_nascimento: dados.data_nascimento,
+        pref_app: dados.pref_app,
+        pref_email: dados.pref_email,
+        pref_whatsapp: dados.pref_whatsapp
+
       });
     },
     onSuccess: () => {

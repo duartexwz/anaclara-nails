@@ -7,9 +7,9 @@ class ClienteBase(BaseModel):
     nome: str
     telefone: str
     email_id: int
-    molde: str
-    cpf: str 
-    data_nascimento: date 
+    molde: str | None = None
+    cpf: str | None = None
+    data_nascimento: date | None = None
     pref_app: bool | None = True
     pref_email: bool | None = True
     pref_whatsapp: bool | None = False
@@ -17,7 +17,6 @@ class ClienteBase(BaseModel):
 
 class ClienteResponse(ClienteBase):
     id: int
-    telefone: str
     model_config = ConfigDict(from_attributes=True)
 
 class ClienteList(BaseModel):

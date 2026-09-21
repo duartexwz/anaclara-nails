@@ -61,6 +61,22 @@ class MensagensServices:
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR
             )
 
+        # MURAL + PUSH (cliente -> admin recebe na hora; admin -> cliente
+        # recebe no aparelho). Falha aqui nunca derruba o envio.
+        from api.services.notificacoes_services import (
+            disparar_notificacao_admin,
+        )
+
+        texto = (mensagem.texto or '').strip()
+        previa = texto[:120] + ('…' if len(texto) > 120 else '')
+        if mensagem.remetente == 'cliente':
+            titulo = 'Nova mensagem de cliente'
+        else:
+            titulo = 'Nova mensagem da Ana Clara'
+        await disparar_notificacao_admin(
+            db, 'mensagem', titulo, previa, mensagem.agendamento_id
+        )
+
         return resultado
 
 

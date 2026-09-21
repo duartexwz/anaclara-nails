@@ -1,6 +1,9 @@
 /**
  * Cliente HTTP da API Ana Clara Nails (FastAPI em /api/v1).
- * Autenticação via cookies httpOnly do backend (credentials: include).
+ * SESSÃO POR ABA: access/refresh tokens vivem no sessionStorage da aba
+ * e viajam no header Authorization (Bearer). Nenhum cookie de sessão é
+ * usado — cada janela/aba tem sessão própria. Só o csrf_token continua
+ * em cookie, para os fluxos legados.
  */
 
 export const API_URL =
@@ -46,16 +49,80 @@ function lerCookie(nome: string): string | null {
   return achado ? decodeURIComponent(achado.slice(nome.length + 1)) : null;
 }
 
+const ACCESS_KEY = "ana-clara-access";
+const REFRESH_KEY = "ana-clara-refresh";
+const REFRESH_PATH = "/api/v1/login/auth/refresh";
+
+function lerSessao(nome: string): string | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    return sessionStorage.getItem(nome);
+  } catch {
+    return null;
+  }
+}
+
+export function guardarSessao(access: string, refresh: string): void {
+  try {
+    sessionStorage.setItem(ACCESS_KEY, access);
+    sessionStorage.setItem(REFRESH_KEY, refresh);
+  } catch {
+    /* storage indisponível */
+  }
+}
+
+export function limparSessao(): void {
+  try {
+    sessionStorage.removeItem(ACCESS_KEY);
+    sessionStorage.removeItem(REFRESH_KEY);
+  } catch {
+    /* storage indisponível */
+  }
+}
+
+async function renovarSessao(): Promise<boolean> {
+  const refresh = lerSessao(REFRESH_KEY);
+  const access = lerSessao(ACCESS_KEY);
+  if (!refresh) return false;
+  try {
+    const res = await fetch(`${API_URL}${REFRESH_PATH}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(access ? { Authorization: `Bearer ${access}` } : {}),
+      },
+      body: JSON.stringify({ refresh_token: refresh }),
+    });
+    if (!res.ok) {
+      if (res.status === 401) limparSessao();
+      return false;
+    }
+    const data = (await res.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+    };
+    if (!data.access_token || !data.refresh_token) return false;
+    guardarSessao(data.access_token, data.refresh_token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
+  tentativa = 0,
 ): Promise<T> {
   const csrf = lerCookie("csrf_token");
+  const access = lerSessao(ACCESS_KEY);
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...(access ? { Authorization: `Bearer ${access}` } : {}),
       ...(csrf ? { "X-CSRF-Token": csrf } : {}),
       ...(init.headers ?? {}),
     },
@@ -63,18 +130,20 @@ export async function apiFetch<T>(
   if (res.status === 204) return undefined as T;
   const corpo = await res.json().catch(() => ({}));
   if (!res.ok) {
+    // Sessão expirada: tenta renovar uma vez (exceto no login/refresh).
+    if (
+      res.status === 401 &&
+      tentativa === 0 &&
+      path !== REFRESH_PATH &&
+      path !== "/api/v1/login/"
+    ) {
+      if (await renovarSessao()) return apiFetch(path, init, tentativa + 1);
+    }
     const detalhe =
       typeof corpo?.detail === "string"
         ? corpo.detail
         : `Erro ${res.status} na API`;
     throw new ApiError(res.status, detalhe);
-  }
-  if (res.status === 401 && path != "/api/v1/login/auth/refresh"){
-    const refreshOk = await fetch(`${API_URL}/api/v1/login/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-    if (refreshOk) return apiFetch(path, init); //Repete a chamada original
   }
   return corpo as T;
 }
@@ -106,14 +175,23 @@ export async function loginApi(
       res.status === 401 ? "E-mail ou senha inválidos" : "Falha no login",
     );
   }
-  const data = (await res.json()) as { user: UsuarioApi };
+  const data = (await res.json()) as {
+    user: UsuarioApi;
+    access_token: string;
+    refresh_token: string;
+  };
+  guardarSessao(data.access_token, data.refresh_token);
   return data.user;
 }
 
 export async function logoutApi(): Promise<void> {
-  await apiFetch("/api/v1/login/logout/", { method: "POST" }).catch(
-    () => undefined,
-  );
+  try {
+    await apiFetch("/api/v1/login/logout/", { method: "POST" });
+  } catch {
+    /* sessão já inválida */
+  } finally {
+    limparSessao();
+  }
 }
 
 export async function meApi(): Promise<UsuarioApi> {
@@ -270,9 +348,15 @@ export async function uploadFotoModeloApi(
 ): Promise<{ imagem_url: string }> {
   const form = new FormData();
   form.append("arquivo", arquivo);
+  const csrf = lerCookie("csrf_token");
+  const accessUpload = lerSessao(ACCESS_KEY);
   const res = await fetch(`${API_URL}/api/v1/uploads/modelos/${id}`, {
     method: "POST",
     credentials: "include",
+    headers: {
+      ...(accessUpload ? { Authorization: `Bearer ${accessUpload}` } : {}),
+      ...(csrf ? {"X-CSRF-Token": csrf} : {}),
+    },
     body: form,
   });
   if (!res.ok) throw new ApiError(res.status, "Falha no upload da foto");
@@ -313,6 +397,11 @@ export async function criarClienteApi(dados: {
   nome: string;
   telefone: string;
   email_id?: number | null;
+  cpf?: string | null;
+  data_nascimento?: string | null;
+  pref_app?: boolean | null;
+  pref_email?: boolean | null;
+  pref_whatsapp?: boolean | null;
 }): Promise<ClienteApi> {
   return apiFetch<ClienteApi>("/api/v1/clientes", {
     method: "POST",

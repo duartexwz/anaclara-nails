@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { ApiError, enviarMensagemApi, listarMensagensApi } from "@/lib/api";
-import { MessageCircle, Send, Loader2 } from "lucide-react";
+import { inscreverPush, pushAtivoLocal, pushSuportado } from "@/lib/push";
+import { MessageCircle, Send, Loader2, BellRing } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/mensagens")({
@@ -31,11 +32,28 @@ function Mensagens() {
   const { usuario } = useAuth();
   const queryClient = useQueryClient();
   const [resposta, setResposta] = useState("");
+  const [pushPedido, setPushPedido] = useState(false);
+
+  // Oferece o push no aparelho uma única vez (respostas da Ana Clara chegam na hora)
+  useEffect(() => {
+    if (!usuario || !pushSuportado() || pushAtivoLocal()) return;
+    setPushPedido(true);
+  }, [usuario]);
+
+  const ativarPush = async () => {
+    const resultado = await inscreverPush();
+    setPushPedido(false);
+    if (resultado === "ok") toast.success("Avisos ativados neste aparelho");
+    else if (resultado === "negado") toast.error("Permissão de notificação negada");
+    else if (resultado === "sem-chave") toast.error("Push ainda não configurado no servidor");
+    else if (resultado !== "indisponivel") toast.error("Não foi possível ativar agora");
+  };
 
   const mensagensQuery = useQuery({
     queryKey: ["mensagens"],
     queryFn: listarMensagensApi,
     enabled: !!usuario,
+    refetchInterval: 5000,
   });
 
   const enviarMutation = useMutation({
@@ -105,6 +123,18 @@ function Mensagens() {
               className="rounded-xl"
             />
           </div>
+          {pushPedido && (
+            <button
+              onClick={ativarPush}
+              className="mt-3 flex w-full items-center gap-3 rounded-2xl gradient-primary p-3 text-left text-primary-foreground shadow-soft"
+            >
+              <BellRing className="size-5 shrink-0" />
+              <span className="text-xs">
+                <span className="block font-medium">Receber respostas neste aparelho</span>
+                <span className="opacity-85">Avisamos quando a Ana Clara responder</span>
+              </span>
+            </button>
+          )}
           <Button
             className="mt-3 w-full gradient-primary text-primary-foreground"
             disabled={enviarMutation.isPending}

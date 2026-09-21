@@ -6,7 +6,7 @@
  *  - GETs da API: StaleWhileRevalidate (dados carregados mesmo offline)
  *  - POST/PUT/DELETE e terceiros (ex.: Mercado Pago): direto à rede
  */
-const VERSAO = "v2";
+const VERSAO = "v3";
 const CACHE_PAGINAS = `ana-clara-paginas-${VERSAO}`;
 const CACHE_IMAGENS = `ana-clara-imagens-${VERSAO}`;
 const CACHE_ESTATICOS = `ana-clara-estaticos-${VERSAO}`;
@@ -124,7 +124,10 @@ self.addEventListener("fetch", (event) => {
   }
 
   // API (mesma origem): rápida via cache, revalida em segundo plano.
+  // SESSÃO POR ABA: com Authorization cada aba é um usuário distinto —
+  // nunca servir nem guardar cache (evita vazar dados entre janelas).
   if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) {
+    if (request.headers.get("authorization")) return;
     event.respondWith(rapidoERevalidado(request, CACHE_API));
     return;
   }

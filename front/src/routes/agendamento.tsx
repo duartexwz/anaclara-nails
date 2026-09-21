@@ -409,7 +409,7 @@ function Agendamento() {
               <Card className="rounded-3xl border-border/70 p-6 shadow-card">
                 <h2 className="font-display text-2xl">Horários disponíveis</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Horários em cinza já estão reservados por outra cliente .
+                  Horários em cinza já estão reservados por outra cliente.
                 </p>
                 {programacaoQuery.isPending || bloqueiosQuery.isPending ? (
                   <div className="mt-5 grid gap-3 sm:grid-cols-3">

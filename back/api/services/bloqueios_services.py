@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from asyncpg import Connection
+from asyncpg.exceptions import UniqueViolationError
 from fastapi import HTTPException
 
 from api.repositories.bloqueios_repository import BloqueiosRepository
@@ -31,13 +32,13 @@ class BloqueiosServices:
                 status_code=HTTPStatus.FORBIDDEN
             )
 
-        dados = bloqueio.model_dump(mode='json')
+        dados = bloqueio.model_dump()
 
         try:
             resultado = await self.bloqueios_repository.criar(
                 db, dados
             )
-        except Exception as err:
+        except UniqueViolationError as err:
             raise HTTPException(
                 detail='Data já bloqueada',
                 status_code=HTTPStatus.CONFLICT

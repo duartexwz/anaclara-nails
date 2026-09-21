@@ -55,6 +55,15 @@ class ClientesServices:
                 detail='O telefone já pertence a um cliente cadastrado',
                 status_code=HTTPStatus.CONFLICT
             )
+        if (
+            cliente.cpf and await self.clientes_repository.existe(
+                db, 'cpf', cliente.cpf
+            )
+        ):
+            raise HTTPException(
+                detail='Já existe um cliente cadastrado com o cpf inserido',
+                status_code=HTTPStatus.CONFLICT
+            )
 
         dados = cliente.model_dump()
         # Colunas NOT NULL com DEFAULT no banco (005): INSERT explícito com
