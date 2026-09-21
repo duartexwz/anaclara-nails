@@ -146,7 +146,7 @@ function Catalogo() {
                 <DialogTitle className="font-display text-2xl">{selecionado.nome}</DialogTitle>
                 <DialogDescription>{selecionado.descricao}</DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-3 gap-3 rounded-2xl bg-muted/60 p-4 text-center text-sm">
+              <div className="grid grid-cols-1 gap-3 rounded-2xl bg-muted/60 p-4 text-center text-sm min-[480px]:grid-cols-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium">{brl(selecionado.preco)}</p>

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Sparkles, LogIn, LogOut, ShieldCheck } from "lucide-react";
+import { Menu, Sparkles, LogIn, LogOut, ShieldCheck, Download } from "lucide-react";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
 import { useAuth } from "@/lib/auth";
+import { useInstalavel, solicitarInstalacao } from "@/lib/pwa";
+import { toast } from "sonner";
 
 const navegacao = [
   { para: "/", rotulo: "Home" },
@@ -19,6 +21,13 @@ export function Cabecalho() {
   const [modo, setModo] = useState<ModoAuth>("login");
   const [menu, setMenu] = useState(false);
   const { usuario, entrar, cadastrar, sair } = useAuth();
+  const instalavel = useInstalavel();
+
+  const instalar = async () => {
+    const ok = await solicitarInstalacao();
+    if (ok) toast.success("App instalado! Procure o ícone na tela inicial.");
+    setMenu(false);
+  };
 
   const abrir = (m: ModoAuth) => {
     setModo(m);
@@ -60,6 +69,11 @@ export function Cabecalho() {
               <Link to="/admin">
                 <ShieldCheck className="mr-1 size-4" /> Painel
               </Link>
+            </Button>
+          )}
+          {instalavel && (
+            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={instalar} title="Instalar o app no aparelho">
+              <Download className="mr-1 size-4" /> Instalar app
             </Button>
           )}
           {usuario ? (
@@ -113,6 +127,14 @@ export function Cabecalho() {
                 >
                   Painel administrativo
                 </Link>
+              )}
+              {instalavel && (
+                <button
+                  onClick={instalar}
+                  className="flex items-center gap-2 rounded-xl bg-gradient-primary px-3 py-2.5 text-sm font-medium text-primary-foreground shadow-soft"
+                >
+                  <Download className="size-4" /> Instalar app no aparelho
+                </button>
               )}
               {usuario ? (
                 <>
