@@ -48,6 +48,10 @@ T_OptionalCurrentUser = Annotated[
     summary='Autenticar usuário',
     response_model=LoginResponse
 )
+@router.post(
+    '',
+    include_in_schema=False,
+)
 async def login(
     db: T_Session,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
@@ -77,6 +81,11 @@ async def me(current_user: T_CurrentUser):
     '/auth/refresh',
     summary='Renovar Sessão',
     response_model=LoginResponse,
+)
+@router.post(
+    '/auth/refresh/',
+    response_model=LoginResponse,
+    include_in_schema=False,
 )
 async def refresh_session(
     db: T_Session,
@@ -144,6 +153,10 @@ async def refresh_session(
     summary='Encerrar Sessão',
     response_model=MessageGlobal
 )
+@router.post(
+    '/logout',
+    include_in_schema=False,
+)
 async def logout(
     request: Request,
     response: Response,
@@ -159,6 +172,11 @@ async def logout(
     status_code=HTTPStatus.ACCEPTED,
     response_model=MessageGlobal
 )
+@router.post(
+    '/recuperar',
+    status_code=HTTPStatus.ACCEPTED,
+    include_in_schema=False,
+)
 async def recuperar_senha(
     dados: RecuperarSenha,
     db: T_Session,
@@ -173,6 +191,10 @@ async def recuperar_senha(
     summary='Redefinir senha com token (RF03)',
     status_code=HTTPStatus.OK,
     response_model=MessageGlobal
+)
+@router.post(
+    '/redefinir',
+    include_in_schema=False,
 )
 async def redefinir_senha(
     dados: RedefinirSenha,

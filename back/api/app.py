@@ -134,13 +134,20 @@ async def csrf_cookie_protection(request: Request, call_next):
     exempt_paths = {
         '/api/v1/login/', '/api/v1/login/recuperar/',
         '/api/v1/usuarios', '/api/v1/login/redefinir/',
-        '/api/v1/login/refresh', '/api/v1/login/logout/'
+        '/api/v1/login/refresh', '/api/v1/login/logout/',
         '/docs', '/docs/', '/openapi.json',
         '/acompanhar/agendamento', '/api/v1/pagamentos/webhook',
         '/api/v1/administradores', '/admin/catalogo'
     }
 
-    if request.url.path in exempt_paths or request.method in ('GET', 'HEAD', 'OPTIONS'):
+    # Compara sem barra final: proxies (ex.: Vercel trailingSlash:false)
+    # podem remover a '/' e a rota continuaria pública.
+    def _sem_barra(rota: str) -> str:
+        return rota if rota == '/' else rota.rstrip('/')
+
+    if _sem_barra(request.url.path) in {
+        _sem_barra(p) for p in exempt_paths
+    } or request.method in ('GET', 'HEAD', 'OPTIONS'):
         return await call_next(request)
 
     csrf_cookie = request.cookies.get('csrf_token')
