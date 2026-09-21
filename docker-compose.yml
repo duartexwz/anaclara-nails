@@ -12,6 +12,7 @@ services:
       - nail-appointment-network
     depends_on:
       - backend
+    restart: unless-stopped
 
   gateway:
     image: nginx:alpine
@@ -25,6 +26,7 @@ services:
     depends_on:
       - frontend
       - backend
+    restart: unless-stopped
 
   backend:
     build:
@@ -78,6 +80,7 @@ services:
       - "8020:8020"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8020/health/ready', timeout=4)"]
       interval: 30s
