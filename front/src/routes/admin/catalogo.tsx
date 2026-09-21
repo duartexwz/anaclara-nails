@@ -131,8 +131,9 @@ function CatalogoAdmin() {
         ? await atualizarModeloApi(form.id!, dados)
         : await criarModeloApi(dados);
       if (foto) {
-        const up = await uploadFotoModeloApi(salvo.id, foto);
-        await atualizarModeloApi(salvo.id, { imagem_url: up.imagem_url });
+        // O upload já grava imagem_url no modelo (uploads_service);
+        // sem PATCH redundante (era ele que caía no 400 vazio).
+        await uploadFotoModeloApi(salvo.id, foto);
       }
       return salvo;
     },

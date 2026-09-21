@@ -345,7 +345,7 @@ export async function excluirModeloApi(id: number): Promise<void> {
 export async function uploadFotoModeloApi(
   id: number,
   arquivo: File,
-): Promise<{ imagem_url: string }> {
+): Promise<{ url: string; key: string }> {
   const form = new FormData();
   form.append("arquivo", arquivo);
   const csrf = lerCookie("csrf_token");
@@ -360,7 +360,7 @@ export async function uploadFotoModeloApi(
     body: form,
   });
   if (!res.ok) throw new ApiError(res.status, "Falha no upload da foto");
-  return (await res.json()) as { imagem_url: string };
+  return (await res.json()) as { url: string; key: string };
 }
 
 /* ------------------------------- Clientes ---------------------------- */

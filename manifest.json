@@ -1,0 +1,58 @@
+{
+  "name": "Ana Clara Nails — Agendamento de nail design",
+  "short_name": "Ana Clara Nails",
+  "description": "Catálogo de modelos de unha, agendamento online com sinal de 50% e acompanhamento do seu horário.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f1fd",
+  "theme_color": "#6959CD",
+  "dir": "ltr",
+  "lang": "pt-BR",
+  "categories": ["beauty", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agendar horário",
+      "short_name": "Agendar",
+      "description": "Escolha o modelo e reserve seu horário",
+      "url": "/agendamento",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Catálogo",
+      "short_name": "Catálogo",
+      "description": "Ver modelos de unha",
+      "url": "/catalogo",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Acompanhar agendamento",
+      "short_name": "Acompanhar",
+      "description": "Ver status do seu horário",
+      "url": "/acompanhar",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
