@@ -64,7 +64,7 @@ class TestUsuarioServices:
     async def test_create_ok(self, fake_db):
         fake_db.queue_fetchrow(None, {'id': 1})
         resultado = await self.svc.create_usuario(
-            fake_db, UsuarioBase(email='a@mail.com', password='x')
+            fake_db, UsuarioBase(nome='Ana', email='a@mail.com', password='x')
         )
         assert resultado == {'id': 1}
 
@@ -72,7 +72,7 @@ class TestUsuarioServices:
         fake_db.queue_fetchrow({'id': 1})
         with pytest.raises(HTTPException) as exc:
             await self.svc.create_usuario(
-                fake_db, UsuarioBase(email='a@mail.com', password='x')
+                fake_db, UsuarioBase(nome='Ana', email='a@mail.com', password='x')
             )
         assert exc.value.status_code == HTTPStatus.CONFLICT
 
@@ -80,15 +80,13 @@ class TestUsuarioServices:
         fake_db.queue_fetchrow(None, None)
         with pytest.raises(HTTPException) as exc:
             await self.svc.create_usuario(
-                fake_db, UsuarioBase(email='a@mail.com', password='x')
+                fake_db, UsuarioBase(nome='Ana', email='a@mail.com', password='x')
             )
         assert exc.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
 
-    async def test_get_404_quando_vazio(self, fake_db):
+    async def test_get_vazio_200_lista_vazia(self, fake_db):
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await self.svc.get_usuarios(fake_db, UsuarioFilter())
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await self.svc.get_usuarios(fake_db, UsuarioFilter()) == []
 
     async def test_get_ok(self, fake_db):
         fake_db.queue_fetch([{'id': 1}])
@@ -100,7 +98,7 @@ class TestUsuarioServices:
         fake_db.queue_fetchrow(None)
         with pytest.raises(HTTPException) as exc:
             await self.svc.update_usuarios(
-                fake_db, 1, UsuarioUpdate(email='n@mail.com'), admin_user
+                fake_db, 1, UsuarioUpdate(nome='N', email='n@mail.com'), admin_user
             )
         assert exc.value.status_code == HTTPStatus.NOT_FOUND
 
@@ -110,22 +108,22 @@ class TestUsuarioServices:
         fake_db.queue_fetchrow({'id': 1}, {'id': 2})
         with pytest.raises(HTTPException) as exc:
             await self.svc.update_usuarios(
-                fake_db, 1, UsuarioUpdate(email='n@mail.com'), admin_user
+                fake_db, 1, UsuarioUpdate(nome='N', email='n@mail.com'), admin_user
             )
         assert exc.value.status_code == HTTPStatus.CONFLICT
 
     async def test_update_sem_campos_400(self, fake_db, admin_user):
+        ## SCHEMA EXIGE NOME: PAYLOAD VAZIO É REJEITADO NA BORDA (422)
+        from pydantic import ValidationError
+
         fake_db.queue_fetchrow({'id': 1})
-        with pytest.raises(HTTPException) as exc:
-            await self.svc.update_usuarios(
-                fake_db, 1, UsuarioUpdate(), admin_user
-            )
-        assert exc.value.status_code == HTTPStatus.BAD_REQUEST
+        with pytest.raises(ValidationError):
+            UsuarioUpdate()
 
     async def test_update_ok(self, fake_db, admin_user):
         fake_db.queue_fetchrow({'id': 1}, None, {'id': 1})
         resultado = await self.svc.update_usuarios(
-            fake_db, 1, UsuarioUpdate(email='n@mail.com'), admin_user
+            fake_db, 1, UsuarioUpdate(nome='N', email='n@mail.com'), admin_user
         )
         assert resultado == {'id': 1}
 
@@ -133,7 +131,7 @@ class TestUsuarioServices:
         from api.schemas.usuarios_schemas import UsuarioBase as UB
         fake_db.queue_fetchrow(None, {'id': 1})
         await self.svc.create_usuario(
-            fake_db, UB(email='a@mail.com', password='x', type_user_id=1)
+            fake_db, UB(nome='Ana', email='a@mail.com', password='x', type_user_id=1)
         )
         params = fake_db.args_of(1)
         assert params[-1] == 2
@@ -146,7 +144,7 @@ class TestUsuarioServices:
         fake_db.queue_fetchrow({'id': 2})
         with pytest.raises(HTTPException) as exc:
             await self.svc.update_usuarios(
-                fake_db, 2, UU(type_user_id=1), comum_user
+                fake_db, 2, UU(nome='N', type_user_id=1), comum_user
             )
         assert exc.value.status_code == HTTPStatus.FORBIDDEN
 
@@ -156,7 +154,7 @@ class TestUsuarioServices:
         from api.schemas.usuarios_schemas import UsuarioUpdate as UU
         fake_db.queue_fetchrow({'id': 2}, {'id': 2})
         resultado = await self.svc.update_usuarios(
-            fake_db, 2, UU(type_user_id=1), admin_user
+            fake_db, 2, UU(nome='N', type_user_id=1), admin_user
         )
         assert resultado == {'id': 2}
 
@@ -255,7 +253,7 @@ class TestClientesServices:
         fake_db.queue_fetchrow({'id': 1})
         with pytest.raises(HTTPException) as exc:
             await self.svc.create_cliente(
-                fake_db, ClienteBase(nome='Ana', telefone='111')
+                fake_db, ClienteBase(nome='Ana', telefone='111', email_id=9)
             )
         assert exc.value.status_code == HTTPStatus.CONFLICT
 
@@ -263,17 +261,15 @@ class TestClientesServices:
         fake_db.queue_fetchrow(None, {'id': 2})
         with pytest.raises(HTTPException) as exc:
             await self.svc.create_cliente(
-                fake_db, ClienteBase(nome='Bia', telefone='111')
+                fake_db, ClienteBase(nome='Bia', telefone='111', email_id=9)
             )
         assert exc.value.status_code == HTTPStatus.CONFLICT
 
-    async def test_get_404(self, fake_db, admin_user):
+    async def test_get_vazio_200_lista_vazia(self, fake_db, admin_user):
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await self.svc.get_clientes(
-                fake_db, ClienteFilter(), admin_user
-            )
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await self.svc.get_clientes(
+            fake_db, ClienteFilter(), admin_user
+        ) == []
 
     async def test_update_404(self, fake_db, admin_user):
         fake_db.queue_fetchrow(None)
@@ -499,6 +495,7 @@ class TestProgramacaoSemanalServices:
             inicio_expediente='09:00',
             fim_expediente='18:00',
             pausa_duracao=time(1, 0),
+            intervalo_minutos=90,
         )
 
     async def test_create_dia_duplicado_409(self, fake_db, admin_user):
@@ -545,13 +542,11 @@ class TestStatusPagamentosServices:
             )
         assert exc.value.status_code == HTTPStatus.CONFLICT
 
-    async def test_get_404(self, fake_db, admin_user):
+    async def test_get_vazio_200_lista_vazia(self, fake_db, admin_user):
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await self.svc.get_status_pagamentos(
-                fake_db, StatusPagamentoFilter(), admin_user
-            )
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await self.svc.get_status_pagamentos(
+            fake_db, StatusPagamentoFilter(), admin_user
+        ) == []
 
     async def test_delete_ok(self, fake_db, admin_user):
         fake_db.queue_fetchrow({'id': 1}, {'id': 1})
@@ -586,6 +581,7 @@ class TestTokenServices:
         fake_db.queue_fetchrow(
             {
                 'id': 1,
+                'nome': 'Ana',
                 'email': 'a@mail.com',
                 'password': get_password_hash('certa'),
                 'type_user_id': 2,
@@ -608,6 +604,7 @@ class TestTokenServices:
         fake_db.queue_fetchrow(
             {
                 'id': 1,
+                'nome': 'Ana',
                 'email': 'a@mail.com',
                 'password': get_password_hash('certa'),
                 'type_user_id': 2,
@@ -635,7 +632,7 @@ class TestTokenServices:
                 'nome': 'Ana Clara',
                 'email': 'admin@nails.com',
                 'password': get_password_hash('segredo123'),
-                'type_user_id': 2,
+                'type_user_id': 1,
             }
         )
         form = OAuth2PasswordRequestForm(
@@ -709,11 +706,9 @@ class TestCoberturaComplementar:
         ) == [{'id': 1}]
 
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await svc.get_agendamentos(
-                fake_db, AgendamentoFilter(), admin_user
-            )
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await svc.get_agendamentos(
+            fake_db, AgendamentoFilter(), admin_user
+        ) == []
 
         fake_db.queue_fetchrow(MODELO, None, {'id': 5}, None)
         with pytest.raises(HTTPException) as exc:
@@ -736,13 +731,13 @@ class TestCoberturaComplementar:
         svc = ClientesServices()
         fake_db.queue_fetchrow(None, None, {'id': 1})
         assert await svc.create_cliente(
-            fake_db, ClienteBase(nome='A', telefone='1')
+            fake_db, ClienteBase(nome='A', telefone='1', email_id=9)
         ) == {'id': 1}
 
         fake_db.queue_fetchrow(None, None, None)
         with pytest.raises(HTTPException) as exc:
             await svc.create_cliente(
-                fake_db, ClienteBase(nome='A', telefone='1')
+                fake_db, ClienteBase(nome='A', telefone='1', email_id=9)
             )
         assert exc.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
 
@@ -776,9 +771,7 @@ class TestCoberturaComplementar:
         assert exc.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
 
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await svc.get_modelos_unhas(fake_db, ModeloUnhaFilter())
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await svc.get_modelos_unhas(fake_db, ModeloUnhaFilter()) == []
 
         for seq, esperado in [
             ([None], HTTPStatus.NOT_FOUND),
@@ -838,11 +831,9 @@ class TestCoberturaComplementar:
         ) == [{'id': 1}]
 
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await svc.get_nail_designs(
-                fake_db, NailDesignFilter(), admin_user
-            )
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await svc.get_nail_designs(
+            fake_db, NailDesignFilter(), admin_user
+        ) == []
 
         fake_db.queue_fetchrow({'id': 1}, {'id': 1})
         assert await svc.update_nail_design(
@@ -887,6 +878,7 @@ class TestCoberturaComplementar:
             inicio_expediente='09:00',
             fim_expediente='18:00',
             pausa_duracao=time(1, 0),
+            intervalo_minutos=90,
         )
         fake_db.queue_fetchrow(None, None)
         with pytest.raises(HTTPException) as exc:
@@ -901,11 +893,9 @@ class TestCoberturaComplementar:
         ) == [{'id': 1}]
 
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await svc.get_programacao_semanal(
-                fake_db, ProgramacaoSemanalFilter()
-            )
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        assert await svc.get_programacao_semanal(
+            fake_db, ProgramacaoSemanalFilter()
+        ) == []
 
         fake_db.queue_fetchrow(None)
         with pytest.raises(HTTPException) as exc:
@@ -1022,7 +1012,7 @@ class TestCoberturaComplementar:
         fake_db.queue_fetchrow({'id': 1}, None, None)
         with pytest.raises(HTTPException) as exc:
             await svc.update_usuarios(
-                fake_db, 1, UsuarioUpdate(email='n@mail.com'), admin_user
+                fake_db, 1, UsuarioUpdate(nome='N', email='n@mail.com'), admin_user
             )
         assert exc.value.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
 

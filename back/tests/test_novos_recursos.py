@@ -91,7 +91,7 @@ class TestBloqueiosServices:
         fake_db.queue_fetchrow({'id': 3})
         resultado = await self.svc.create_bloqueio(
             fake_db,
-            BloqueioBase(data=date(2026, 12, 25), motivo='Natal'),
+            BloqueioBase(data=date(2026, 12, 25), motivo='Feriado de Natal'),
             admin_user,
         )
         assert resultado == {'id': 3}
@@ -100,7 +100,7 @@ class TestBloqueiosServices:
         with pytest.raises(HTTPException) as exc:
             await self.svc.create_bloqueio(
                 fake_db,
-                BloqueioBase(data=date(2026, 12, 25), motivo='Natal'),
+                BloqueioBase(data=date(2026, 12, 25), motivo='Feriado de Natal'),
                 comum_user,
             )
         assert exc.value.status_code == HTTPStatus.FORBIDDEN
@@ -185,11 +185,11 @@ class TestRotasNovas:
         from tests.conftest import CSRF_COOKIES, CSRF_HEADERS
 
         fake_db.queue_fetchrow(
-            {'id': 3, 'data': '2026-12-25', 'motivo': 'Natal'}
+            {'id': 3, 'data': '2026-12-25', 'motivo': 'Feriado de Natal'}
         )
         resposta = await client.post(
             '/api/v1/bloqueios',
-            json={'data': '2026-12-25', 'motivo': 'Natal'},
+            json={'data': '2026-12-25', 'motivo': 'Feriado de Natal'},
             headers=CSRF_HEADERS,
             cookies=CSRF_COOKIES,
         )

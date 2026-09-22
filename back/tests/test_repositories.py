@@ -76,7 +76,7 @@ class TestSqlQueryBuilder:
         builder = SqlQueryBuilder('tabela', ['nome'])
         query, params = builder.build_insert({'nome': 'Ana'})
         assert 'INSERT INTO tabela' in query
-        assert 'RETURNING id, nome' in query
+        assert 'RETURNING nome' in query
         assert params == ['Ana']
 
     def test_build_insert_vazio_retorna_400(self):

@@ -25,6 +25,7 @@ class TestLogin:
         fake_db.queue_fetchrow(
             {
                 'id': 1,
+                'nome': 'Ana',
                 'email': 'a@mail.com',
                 'password': get_password_hash('certa'),
                 'type_user_id': 2,
@@ -42,6 +43,7 @@ class TestLogin:
         fake_db.queue_fetchrow(
             {
                 'id': 1,
+                'nome': 'Ana',
                 'email': 'a@mail.com',
                 'password': get_password_hash('certa'),
                 'type_user_id': 2,
@@ -83,6 +85,7 @@ class TestLogin:
             None,
             {
                 'id': 1,
+                'nome': 'Ana',
                 'email': 'a@mail.com',
                 'password': 'h',
                 'type_user_id': '2',
@@ -90,7 +93,7 @@ class TestLogin:
         )
         resposta = await client.post(
             '/api/v1/usuarios',
-            json={'email': 'a@mail.com', 'password': 'x'},
+            json={'nome': 'Ana', 'email': 'a@mail.com', 'password': 'x'},
         )
         assert resposta.status_code == 201
 
@@ -146,6 +149,7 @@ class TestUsuarios:
             None,
             {
                 'id': 1,
+                'nome': 'Ana',
                 'email': 'a@mail.com',
                 'password': 'h',
                 'type_user_id': '2',
@@ -153,7 +157,7 @@ class TestUsuarios:
         )
         resposta = await client.post(
             '/api/v1/usuarios',
-            json={'email': 'a@mail.com', 'password': 'x'},
+            json={'nome': 'Ana', 'email': 'a@mail.com', 'password': 'x'},
             **csrf(),
         )
         assert resposta.status_code == 201
@@ -165,6 +169,7 @@ class TestUsuarios:
             None,
             {
                 'id': 2,
+                'nome': 'Eva',
                 'email': 'e@mail.com',
                 'password': 'h',
                 'type_user_id': 2,
@@ -172,7 +177,7 @@ class TestUsuarios:
         )
         resposta = await client.post(
             '/api/v1/usuarios',
-            json={'email': 'e@mail.com', 'password': 'x', 'type_user_id': 1},
+            json={'nome': 'Eva', 'email': 'e@mail.com', 'password': 'x', 'type_user_id': 1},
             **csrf(),
         )
         assert resposta.status_code == 201
@@ -182,7 +187,7 @@ class TestUsuarios:
         fake_db.queue_fetchrow({'id': 1})
         resposta = await client.post(
             '/api/v1/usuarios',
-            json={'email': 'a@mail.com', 'password': 'x'},
+            json={'nome': 'Ana', 'email': 'a@mail.com', 'password': 'x'},
             **csrf(),
         )
         assert resposta.status_code == 409
@@ -198,6 +203,7 @@ class TestUsuarios:
             [
                 {
                     'id': 1,
+                    'nome': 'Ana',
                     'email': 'a@mail.com',
                     'password': 'h',
                     'type_user_id': '2',
@@ -208,9 +214,10 @@ class TestUsuarios:
         assert resposta.status_code == 200
         assert len(resposta.json()['usuarios']) == 1
 
-    async def test_get_vazio_404(self, client, fake_db):
+    async def test_get_vazio_200_lista_vazia(self, client, fake_db):
         resposta = await client.get('/api/v1/usuarios')
-        assert resposta.status_code == 404
+        assert resposta.status_code == 200
+        assert resposta.json()['usuarios'] == []
 
     async def test_patch_401_anonimo(self, client, as_anon, fake_db):
         resposta = await client.patch(
@@ -222,11 +229,13 @@ class TestUsuarios:
 
     async def test_patch_200(self, client, fake_db, as_admin):
         fake_db.queue_fetchrow(
-            {'id': 1}, None, {'id': 1, 'email': 'n@mail.com', 'password': 'h'}
+            {'id': 1, 'nome': 'Ana'},
+            None,
+            {'id': 1, 'nome': 'N', 'email': 'n@mail.com', 'password': 'h'},
         )
         resposta = await client.patch(
             '/api/v1/usuarios/1',
-            json={'email': 'n@mail.com'},
+            json={'nome': 'N', 'email': 'n@mail.com'},
             **csrf(),
         )
         assert resposta.status_code == 200
@@ -307,11 +316,11 @@ class TestAdministradores:
 class TestClientes:
     async def test_post_201_publico(self, client, fake_db, as_anon):
         fake_db.queue_fetchrow(
-            None, None, {'id': 1, 'nome': 'Ana', 'telefone': '111'}
+            None, None, {'id': 1, 'nome': 'Ana', 'telefone': '111', 'email_id': 9}
         )
         resposta = await client.post(
             '/api/v1/clientes',
-            json={'nome': 'Ana', 'telefone': '111'},
+            json={'nome': 'Ana', 'telefone': '111', 'email_id': 9},
             **csrf(),
         )
         assert resposta.status_code == 201
@@ -322,7 +331,7 @@ class TestClientes:
 
     async def test_get_200_logado(self, client, fake_db, as_user):
         fake_db.queue_fetch(
-            [{'id': 1, 'nome': 'Ana', 'telefone': '111'}]
+            [{'id': 1, 'nome': 'Ana', 'telefone': '111', 'email_id': 9}]
         )
         resposta = await client.get('/api/v1/clientes')
         assert resposta.status_code == 200
@@ -330,7 +339,7 @@ class TestClientes:
 
     async def test_patch_200(self, client, fake_db, as_user):
         fake_db.queue_fetchrow(
-            {'id': 1}, {'id': 1, 'nome': 'Bia', 'telefone': '111'}
+            {'id': 1}, {'id': 1, 'nome': 'Bia', 'telefone': '111', 'email_id': 9}
         )
         resposta = await client.patch(
             '/api/v1/clientes/1', json={'nome': 'Bia'}, **csrf()
@@ -517,6 +526,8 @@ class TestProgramacaoSemanal:
                     'inicio_expediente': '09:00',
                     'fim_expediente': '18:00',
                     'pausa_duracao': time(1, 0),
+            'intervalo_minutos': 90,
+                    'intervalo_minutos': 90,
                 }
             ]
         )
@@ -534,6 +545,7 @@ class TestProgramacaoSemanal:
                 'inicio_expediente': '09:00',
                 'fim_expediente': '18:00',
                 'pausa_duracao': '01:00:00',
+                'intervalo_minutos': 90,
             },
             **csrf(),
         )
@@ -651,6 +663,7 @@ class TestRotasComplementares:
             'inicio_expediente': '09:00',
             'fim_expediente': '18:00',
             'pausa_duracao': time(1, 0),
+            'intervalo_minutos': 90,
         }
         fake_db.queue_fetchrow(row, row)
         resposta = await client.patch(

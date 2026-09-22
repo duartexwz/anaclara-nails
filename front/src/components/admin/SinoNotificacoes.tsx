@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
 import {
   Bell,
@@ -42,6 +43,8 @@ export function SinoNotificacoes() {
   const [itens, setItens] = useState<NotificacaoApi[]>([]);
   const [pushPedido, setPushPedido] = useState(false);
   const caixaRef = useRef<HTMLDivElement>(null);
+  const sinoRef = useRef<HTMLButtonElement>(null);
+  const [posicao, setPosicao] = useState({ top: 0, direita: 0 });
   const naoLidasRef = useRef(0);
 
   const carregar = useCallback(async (avisarNovas = false) => {
@@ -71,10 +74,30 @@ export function SinoNotificacoes() {
     };
   }, [carregar]);
 
+  // Mede o sino para ancorar o painel no desktop (via portal, fora do
+  // header com blur — blur aprisiona `fixed`, por isso centralizava errado).
+  useLayoutEffect(() => {
+    if (!aberto) return;
+    const medir = () => {
+      const el = sinoRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setPosicao({
+        top: Math.round(r.bottom + 8),
+        direita: Math.round(window.innerWidth - r.right),
+      });
+    };
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, [aberto]);
+
   useEffect(() => {
     if (!aberto) return;
     const aoClicar = (e: MouseEvent) => {
-      if (!caixaRef.current?.contains(e.target as Node)) setAberto(false);
+      const alvo = e.target as Node;
+      if (sinoRef.current?.contains(alvo)) return;
+      if (!caixaRef.current?.contains(alvo)) setAberto(false);
     };
     document.addEventListener("mousedown", aoClicar);
     return () => document.removeEventListener("mousedown", aoClicar);
@@ -108,8 +131,9 @@ export function SinoNotificacoes() {
   const naoLidas = itens.filter((n) => !n.lida).length;
 
   return (
-    <div className="relative" ref={caixaRef}>
+    <div className="relative">
       <button
+        ref={sinoRef}
         className="relative rounded-2xl border border-border bg-card p-2.5"
         aria-label="Notificações"
         onClick={() => setAberto((v) => !v)}
@@ -122,8 +146,19 @@ export function SinoNotificacoes() {
         )}
       </button>
 
-      {aberto && (
-        <div className="fixed left-4 right-4 top-1/2 z-50 -translate-y-1/2 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 sm:translate-y-0">
+      {aberto &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={caixaRef}
+            className="fixed left-4 right-4 top-1/2 z-50 -translate-y-1/2 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card sm:left-auto sm:right-[var(--sino-direita)] sm:top-[var(--sino-topo)] sm:mt-0 sm:w-80 sm:translate-y-0"
+            style={
+              {
+                "--sino-topo": `${posicao.top}px`,
+                "--sino-direita": `${posicao.direita}px`,
+              } as React.CSSProperties
+            }
+          >
           <div className="flex items-center justify-between px-5 py-4">
             <p className="font-display text-lg">Notificações</p>
             {naoLidas > 0 && (
@@ -193,8 +228,9 @@ export function SinoNotificacoes() {
           <p className="border-t border-border/60 px-5 py-2.5 text-[11px] text-muted-foreground">
             Atualizado agora · {naoLidas} não lida{naoLidas === 1 ? "" : "s"}
           </p>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
