@@ -146,21 +146,21 @@ function Catalogo() {
                 <DialogTitle className="font-display text-2xl">{selecionado.nome}</DialogTitle>
                 <DialogDescription>{selecionado.descricao}</DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-1 gap-3 rounded-2xl bg-muted/60 p-4 text-center text-sm min-[480px]:grid-cols-3">
-                <div>
+              <div className="grid grid-cols-1 gap-3 rounded-2xl bg-muted/60 p-4 text-sm min-[480px]:grid-cols-3 min-[480px]:text-center">
+                <div className="flex items-center justify-between gap-2 min-[480px]:block">
                   <p className="text-xs text-muted-foreground">Valor</p>
                   <p className="font-medium">{brl(selecionado.preco)}</p>
                 </div>
-                <div>
+                <div className="flex items-center justify-between gap-2 min-[480px]:block">
                   <p className="text-xs text-muted-foreground">Sinal (50%)</p>
                   <p className="font-medium text-primary">{brl(selecionado.preco / 2)}</p>
                 </div>
-                <div>
+                <div className="flex items-center justify-between gap-2 min-[480px]:block">
                   <p className="text-xs text-muted-foreground">Duração</p>
                   <p className="font-medium">{selecionado.duracao}</p>
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 min-[420px]:flex-row">
                 <Button variant="outline" className="flex-1" onClick={() => setSelecionado(null)}>
                   Voltar ao catálogo
                 </Button>

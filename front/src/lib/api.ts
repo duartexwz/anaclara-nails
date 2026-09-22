@@ -26,9 +26,11 @@ export async function isBackendOnline(): Promise<boolean> {
   const agora = Date.now();
   if (onlineCache && agora - onlineCache.at < 10_000) return onlineCache.value;
   try {
+    // Sonda um endpoint público da API (não o /openapi.json: ele não
+    // existe em produção com docs desativados, o que derrubava a modal).
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 2500);
-    const res = await fetch(`${API_URL}/openapi.json`, {
+    const res = await fetch(`${API_URL}/api/v1/modelos-unhas`, {
       signal: ctrl.signal,
     });
     clearTimeout(t);
