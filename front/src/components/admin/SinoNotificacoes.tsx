@@ -84,8 +84,12 @@ export function SinoNotificacoes() {
         setEstiloPainel({
           top: "50%",
           transform: "translateY(-50%)",
-          left: 16,
-          right: 16,
+          left: 0,
+          right: 0,
+          marginLeft: "auto",
+          marginRight: "auto",
+          width: "calc(100vw - 2rem)",
+          maxWidth: 340,
           maxHeight: "80dvh",
         });
         return;
@@ -166,7 +170,7 @@ export function SinoNotificacoes() {
             className="fixed z-50 flex flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card"
             style={estiloPainel}
           >
-          <div className="flex shrink-0 items-center justify-between px-5 py-4">
+          <div className="flex shrink-0 items-center justify-between px-4 py-3 sm:px-5 sm:py-4">
             <p className="font-display text-lg">Notificações</p>
             {naoLidas > 0 && (
               <button
@@ -232,7 +236,7 @@ export function SinoNotificacoes() {
               );
             })}
           </ul>
-          <p className="shrink-0 border-t border-border/60 px-5 py-2.5 text-[11px] text-muted-foreground">
+          <p className="shrink-0 border-t border-border/60 px-4 py-2 text-[11px] text-muted-foreground sm:px-5 sm:py-2.5">
             Atualizado agora · {naoLidas} não lida{naoLidas === 1 ? "" : "s"}
           </p>
           </div>,

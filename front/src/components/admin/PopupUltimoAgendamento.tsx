@@ -52,14 +52,14 @@ export function PopupUltimoAgendamento({ itens }: { itens: AgendamentoExibicao[]
   return (
     <Dialog open={aberto} onOpenChange={dispensar}>
       <DialogContent className="max-w-md gap-0 overflow-hidden rounded-3xl border-border/70 bg-card p-0 shadow-card">
-        <div className="gradient-primary px-4 py-5 text-primary-foreground sm:px-6 sm:py-6">
+        <div className="gradient-primary px-4 py-4 text-primary-foreground sm:px-6 sm:py-6">
           <p className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] opacity-90">
             <CalendarHeart className="size-4" /> Último agendamento
           </p>
-          <p className="mt-2 font-display text-xl sm:text-2xl">Novo agendamento recebido</p>
+          <p className="mt-1.5 font-display text-lg sm:mt-2 sm:text-2xl">Novo agendamento recebido</p>
         </div>
-        <div className="space-y-3 px-4 py-5 sm:space-y-3 sm:px-6 sm:py-6">
-          <div className="rounded-2xl border border-border bg-muted/50 p-3 text-sm sm:p-4">
+        <div className="space-y-3 px-3 py-4 sm:space-y-3 sm:px-6 sm:py-6">
+          <div className="rounded-2xl border border-border bg-muted/50 p-3 text-[13px] sm:p-4 sm:text-sm">
             {linhas.map((l) => (
               <div
                 key={l.rotulo}

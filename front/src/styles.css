@@ -130,6 +130,19 @@
     border-color: var(--color-border);
   }
 
+  /* Trava anti-scroll lateral no mobile: `clip` (não `hidden`) para
+     não quebrar o `sticky` do cabeçalho. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
