@@ -132,6 +132,33 @@ function Agendamento() {
       ),
     [programacaoQuery.data, bloqueiosQuery.data, ocupados],
   );
+
+  // Dias com horários: o cliente escolhe o dia e vê só os slots dele.
+  const diasComSlots = useMemo(() => {
+    const mapa = new Map<string, (typeof slots)[number]>();
+    for (const s of slots) {
+      if (!mapa.has(s.dataISO)) mapa.set(s.dataISO, s);
+    }
+    return [...mapa.values()];
+  }, [slots]);
+  const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
+  const diaAtivo =
+    (diaSelecionado && diasComSlots.some((d) => d.dataISO === diaSelecionado)
+      ? diaSelecionado
+      : diasComSlots[0]?.dataISO) ?? null;
+  const slotsDoDia = useMemo(
+    () => slots.filter((s) => s.dataISO === diaAtivo),
+    [slots, diaAtivo],
+  );
+  const livresDoDia = (iso: string) =>
+    slots.filter((s) => s.dataISO === iso && !s.ocupado).length;
+
+  // Trocou de dia: descarta horário de outro dia.
+  useEffect(() => {
+    if (slotId && !slotsDoDia.some((s) => s.id === slotId)) setSlotId(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diaAtivo]);
+
   const slot = slots.find((s) => s.id === slotId) ?? null;
 
   const email = usuario?.email ?? "";
@@ -422,26 +449,49 @@ function Agendamento() {
                     Nenhum horário disponível no momento. Tente novamente em breve.
                   </p>
                 ) : (
-                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                    {slots.map((s) => (
-                      <button
-                        key={s.id}
-                        disabled={s.ocupado}
-                        onClick={() => setSlotId(s.id)}
-                        className={`rounded-2xl border p-3 text-left text-sm transition ${
-                          s.ocupado
-                            ? "cursor-not-allowed border-border bg-muted text-muted-foreground line-through"
-                            : slotId === s.id
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-card hover:border-primary/50"
-                        }`}
+                  <div className="mt-5 space-y-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="dia-slot">Dia</Label>
+                      <Select
+                        value={diaAtivo ?? ""}
+                        onValueChange={(v) => {
+                          setDiaSelecionado(v);
+                          setSlotId(null);
+                        }}
                       >
-                        <span className="block text-xs uppercase tracking-wider text-muted-foreground">
-                          {s.dia} · {s.dataCurta}
-                        </span>
-                        <span className="mt-1 block font-display text-lg">{s.hora}</span>
-                      </button>
-                    ))}
+                        <SelectTrigger id="dia-slot" className="h-11 rounded-xl">
+                          <SelectValue placeholder="Escolha o dia" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {diasComSlots.map((d) => (
+                            <SelectItem key={d.dataISO} value={d.dataISO}>
+                              {d.dia} · {d.dataCurta} ({livresDoDia(d.dataISO)} livres)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                      {slotsDoDia.map((s) => (
+                        <button
+                          key={s.id}
+                          disabled={s.ocupado}
+                          onClick={() => setSlotId(s.id)}
+                          className={`min-w-0 rounded-2xl border p-3 text-center text-sm transition ${
+                            s.ocupado
+                              ? "cursor-not-allowed border-border bg-muted text-muted-foreground line-through"
+                              : slotId === s.id
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border bg-card hover:border-primary/50"
+                          }`}
+                        >
+                          <span className="block font-display text-lg leading-tight">{s.hora.slice(0, 5)}</span>
+                          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                            {s.ocupado ? "Reservado" : "Livre"}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </Card>

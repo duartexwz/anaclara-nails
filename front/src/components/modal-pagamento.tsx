@@ -240,7 +240,7 @@ export function ModalPagamento({
         {etapa === "aguardando-pix" && pagamento ? (
           <div className="py-2 text-center">
             <DialogHeader className="text-left">
-              <DialogTitle className="font-display text-2xl">Aguardando o Pix</DialogTitle>
+              <DialogTitle className="font-display text-xl sm:text-2xl">Aguardando o Pix</DialogTitle>
               <DialogDescription>
                 Pague o QR Code para confirmar. Assim que o Mercado Pago aprovar, liberamos aqui.
               </DialogDescription>
@@ -279,7 +279,7 @@ export function ModalPagamento({
             <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-destructive/10">
               <AlertTriangle className="size-8 text-destructive" />
             </div>
-            <h3 className="mt-4 font-display text-2xl">Algo não saiu como esperado</h3>
+            <h3 className="mt-4 font-display text-xl sm:text-2xl">Algo não saiu como esperado</h3>
             <p className="mt-2 text-sm text-muted-foreground">{erroMsg}</p>
             <Button
               className="mt-5 w-full gradient-primary text-primary-foreground"
@@ -301,13 +301,13 @@ export function ModalPagamento({
         ) : (
           <>
             <DialogHeader className="text-left">
-              <DialogTitle className="font-display text-2xl">Pagamento do sinal</DialogTitle>
+              <DialogTitle className="font-display text-xl sm:text-2xl">Pagamento do sinal</DialogTitle>
               <DialogDescription>
                 RN01 — o sinal corresponde a 50% do valor do serviço e confirma o agendamento.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="rounded-2xl border border-border bg-muted/50 p-4 text-sm">
+            <div className="rounded-2xl border border-border bg-muted/50 p-3 text-sm sm:p-4">
               <Linha rotulo="Modelo" valor={modelo} />
               <Linha rotulo="Horário" valor={`${data} · ${hora}`} />
               <Linha rotulo="Valor total" valor={brl(valor)} />
@@ -325,7 +325,7 @@ export function ModalPagamento({
               </div>
             ) : (
               <div>
-                <div id={BRICK_CONTAINER_ID} className="min-h-80" />
+                <div id={BRICK_CONTAINER_ID} className="min-h-64 w-full min-w-0 sm:min-h-80" />
                 <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
                   <ShieldCheck className="size-3.5 text-primary" /> Pagamento seguro via Mercado Pago
                 </p>
