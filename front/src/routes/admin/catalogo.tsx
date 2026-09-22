@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AdminShell,
@@ -16,6 +16,7 @@ import {
   excluirModeloApi,
   listarAgendamentosApi,
   listarModelosApi,
+  otimizarImagemParaUpload,
   uploadFotoModeloApi,
 } from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -87,8 +88,20 @@ function CatalogoAdmin() {
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState<FormModelo>(vazio);
   const [foto, setFoto] = useState<File | null>(null);
+  const [previa, setPrevia] = useState<string | null>(null);
   const [excluirId, setExcluirId] = useState<number | null>(null);
   const editando = form.id != null;
+
+  // Miniatura local da foto escolhida (sem subir nada ainda).
+  useEffect(() => {
+    if (!foto) {
+      setPrevia(null);
+      return;
+    }
+    const url = URL.createObjectURL(foto);
+    setPrevia(url);
+    return () => URL.revokeObjectURL(url);
+  }, [foto]);
 
   const modelosQuery = useQuery({ queryKey: ["modelos"], queryFn: listarModelosApi });
   const agendamentosQuery = useQuery({
@@ -132,8 +145,9 @@ function CatalogoAdmin() {
         : await criarModeloApi(dados);
       if (foto) {
         // O upload já grava imagem_url no modelo (uploads_service);
-        // sem PATCH redundante (era ele que caía no 400 vazio).
-        await uploadFotoModeloApi(salvo.id, foto);
+        // a foto é otimizada no aparelho antes de subir.
+        const otimizada = await otimizarImagemParaUpload(foto);
+        await uploadFotoModeloApi(salvo.id, otimizada);
       }
       return salvo;
     },
@@ -403,10 +417,17 @@ function CatalogoAdmin() {
               <Switch checked={form.ativo} onCheckedChange={(v) => setForm({ ...form, ativo: v })} />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label>Foto do modelo (JPG/PNG/WEBP, até 5MB)</Label>
-              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-primary">
+              <Label>Foto do modelo (otimizada sozinha · JPG/PNG/WEBP)</Label>
+              {previa && (
+                <img
+                  src={previa}
+                  alt="Prévia da foto escolhida"
+                  className="h-28 w-full rounded-2xl border border-border/70 object-cover"
+                />
+              )}
+              <label className="flex min-w-0 cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-3 text-sm text-muted-foreground transition hover:border-primary/50 hover:text-primary">
                 <ImagePlus className="size-4 shrink-0" />
-                <span className="truncate">
+                <span className="min-w-0 flex-1 truncate">
                   {foto ? foto.name : "Escolher arquivo..."}
                 </span>
                 <input

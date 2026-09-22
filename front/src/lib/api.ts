@@ -363,6 +363,47 @@ export async function uploadFotoModeloApi(
   return (await res.json()) as { url: string; key: string };
 }
 
+/* Redimensiona/comprime a foto no aparelho antes de enviar:
+ * fotos de celular (12MP+, vários MB) caem para ~200-400KB,
+ * o que acelera o upload em ~10-20x. Nunca falha: em qualquer
+ * erro, devolve o arquivo original. */
+const LADO_MAXIMO_FOTO = 1600;
+const BYTES_SEM_OTIMIZAR = 1.5 * 1024 * 1024;
+
+export async function otimizarImagemParaUpload(
+  arquivo: File,
+): Promise<File> {
+  try {
+    if (!arquivo.type.startsWith("image/")) return arquivo;
+    const bitmap = await createImageBitmap(arquivo);
+    try {
+      const maiorLado = Math.max(bitmap.width, bitmap.height);
+      if (arquivo.size <= BYTES_SEM_OTIMIZAR && maiorLado <= LADO_MAXIMO_FOTO) {
+        return arquivo;
+      }
+      const escala = Math.min(1, LADO_MAXIMO_FOTO / maiorLado);
+      const w = Math.max(1, Math.round(bitmap.width * escala));
+      const h = Math.max(1, Math.round(bitmap.height * escala));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return arquivo;
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      const blob: Blob | null = await new Promise((res) =>
+        canvas.toBlob(res, "image/webp", 0.82),
+      );
+      if (!blob) return arquivo;
+      const base = arquivo.name.replace(/\.[a-z0-9]+$/i, "") || "foto";
+      return new File([blob], `${base}.webp`, { type: "image/webp" });
+    } finally {
+      if (typeof bitmap.close === "function") bitmap.close();
+    }
+  } catch {
+    return arquivo;
+  }
+}
+
 /* ------------------------------- Clientes ---------------------------- */
 
 export type ClienteApi = {
