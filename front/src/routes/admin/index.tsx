@@ -202,7 +202,7 @@ function Painel() {
               {primeiroPendente ? (
                 <li className="flex gap-3 rounded-2xl border border-warning/40 bg-card/80 p-3.5">
                   <AlertCircle className="mt-0.5 size-4 shrink-0 text-warning-foreground" />
-                  <p>
+                  <p className="min-w-0 flex-1">
                     <span className="font-medium">{primeiroPendente.cliente}</span> ainda não
                     pagou o sinal de {brl(primeiroPendente.sinal)} (#{primeiroPendente.id}).{" "}
                     <Link
@@ -220,7 +220,7 @@ function Painel() {
               )}
               <li className="flex gap-3 rounded-2xl border border-border bg-card/80 p-3.5">
                 <MessageCircle className="mt-0.5 size-4 shrink-0 text-secondary" />
-                <p>
+                <p className="min-w-0 flex-1">
                   <span className="font-medium">{naoLidas.length} mensagem(ns) não lida(s)</span>.{" "}
                   <Link to="/admin/clientes" className="font-medium text-primary hover:underline">
                     Responder
