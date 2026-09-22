@@ -208,7 +208,7 @@ function MeusDados() {
       <section className="gradient-soft">
         <div className="mx-auto max-w-5xl px-4 py-10">
           <p className="text-xs uppercase tracking-[0.3em] text-secondary">Minha conta</p>
-          <h1 className="mt-2 font-display text-4xl">Meus dados</h1>
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl">Meus dados</h1>
           <p className="mt-3 text-muted-foreground">Mantenha seus dados atualizados para receber avisos da Ana Clara.</p>
         </div>
       </section>

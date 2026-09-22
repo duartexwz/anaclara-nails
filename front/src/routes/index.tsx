@@ -54,12 +54,12 @@ function Home() {
       <Cabecalho />
 
       <section className="gradient-soft">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 md:grid-cols-2 md:py-20">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-10 sm:py-14 md:grid-cols-2 md:py-20">
           <div>
             <Badge variant="outline" className="border-primary/40 bg-card/70 text-primary">
               <Sparkles className="mr-1 size-3" /> Agenda de setembro aberta
             </Badge>
-            <h1 className="mt-5 font-display text-4xl leading-tight sm:text-5xl">
+            <h1 className="mt-5 font-display text-3xl leading-tight sm:text-5xl">
               Unhas que combinam <span className="text-gradient">com você</span>
             </h1>
             <p className="mt-4 max-w-md text-muted-foreground">
@@ -67,12 +67,12 @@ function Home() {
               rápido e sem troca de mensagens para marcar.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="gradient-primary text-primary-foreground shadow-soft">
+              <Button asChild size="lg" className="w-full gradient-primary text-primary-foreground shadow-soft sm:w-auto">
                 <Link to="/agendamento">
                   <CalendarHeart className="mr-2 size-4" /> Realizar agendamento
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-primary/40 text-primary">
+              <Button asChild size="lg" variant="outline" className="w-full border-primary/40 text-primary sm:w-auto">
                 <Link to="/catalogo">Catálogo completo</Link>
               </Button>
             </div>
@@ -100,7 +100,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:py-16">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-secondary">Modelos em destaque</p>
@@ -162,7 +162,7 @@ function Home() {
             loading="lazy"
             className="h-full w-full object-cover"
           />
-          <div className="p-8">
+          <div className="p-6 sm:p-8">
             <p className="text-xs uppercase tracking-[0.3em] text-secondary">A profissional</p>
             <h2 className="mt-2 font-display text-3xl">Oi, eu sou a Ana Clara</h2>
             <p className="mt-4 text-muted-foreground">
@@ -186,7 +186,7 @@ function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-4">
-        <div className="rounded-[2rem] gradient-primary px-8 py-12 text-center text-primary-foreground shadow-soft">
+        <div className="rounded-[2rem] gradient-primary px-6 py-8 text-center text-primary-foreground shadow-soft sm:px-8 sm:py-12">
           <h2 className="font-display text-3xl">Pronta para o próximo esmalte?</h2>
           <p className="mx-auto mt-3 max-w-md text-primary-foreground/85">
             Faça login, escolha o modelo e garanta seu horário em quatro etapas.

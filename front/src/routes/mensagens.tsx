@@ -77,7 +77,7 @@ function Mensagens() {
       <section className="gradient-soft">
         <div className="mx-auto max-w-3xl px-4 py-10">
           <p className="text-xs uppercase tracking-[0.3em] text-secondary">Comunicação</p>
-          <h1 className="mt-2 font-display text-4xl">Mensagens</h1>
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl">Mensagens</h1>
           <p className="mt-3 text-muted-foreground">
             Pedidos de antecipação ou remarcação da Ana Clara chegam aqui (RF16).
           </p>

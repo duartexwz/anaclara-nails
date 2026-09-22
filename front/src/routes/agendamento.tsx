@@ -245,7 +245,7 @@ function Agendamento() {
         <section className="gradient-soft">
           <div className="mx-auto max-w-5xl px-4 py-10">
             <p className="text-xs uppercase tracking-[0.3em] text-secondary">Agendamento</p>
-            <h1 className="mt-2 font-display text-4xl">Reserve seu horário</h1>
+            <h1 className="mt-2 font-display text-3xl sm:text-4xl">Reserve seu horário</h1>
             <p className="mt-3 max-w-lg text-muted-foreground">
               Para agendar, entre na sua conta ou crie uma gratuitamente. Leva menos de um minuto.
             </p>

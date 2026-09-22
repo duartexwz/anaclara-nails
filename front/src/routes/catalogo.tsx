@@ -52,9 +52,9 @@ function Catalogo() {
       <Cabecalho />
 
       <section className="gradient-soft">
-        <div className="mx-auto max-w-6xl px-4 py-12">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
           <p className="text-xs uppercase tracking-[0.3em] text-secondary">Catálogo</p>
-          <h1 className="mt-2 font-display text-4xl">Todos os modelos</h1>
+          <h1 className="mt-2 font-display text-3xl sm:text-4xl">Todos os modelos</h1>
           <p className="mt-3 max-w-lg text-muted-foreground">
             Clique em um modelo para escolhê-lo e seguir direto para o agendamento.
           </p>
@@ -87,7 +87,7 @@ function Catalogo() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12">
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
         {modelosQuery.isPending ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2, 3, 4, 5].map((i) => (
@@ -95,9 +95,9 @@ function Catalogo() {
             ))}
           </div>
         ) : modelosQuery.isError ? (
-          <p className="py-16 text-center text-muted-foreground">
-            Não foi possível carregar o catálogo. Verifique sua conexão e recarregue.
-          </p>
+            <p className="py-10 text-center text-muted-foreground sm:py-16">
+              Não foi possível carregar o catálogo. Verifique sua conexão e recarregue.
+            </p>
         ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {lista.map((m) => (
@@ -128,7 +128,7 @@ function Catalogo() {
         </div>
         )}
         {!modelosQuery.isPending && !modelosQuery.isError && lista.length === 0 && (
-          <p className="py-16 text-center text-muted-foreground">Nenhum modelo encontrado.</p>
+          <p className="py-10 text-center text-muted-foreground sm:py-16">Nenhum modelo encontrado.</p>
         )}
       </section>
 

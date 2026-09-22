@@ -37,7 +37,7 @@ function RedefinirSenha() {
   return (
     <div className="min-h-screen">
       <Cabecalho />
-      <section className="mx-auto max-w-md px-4 py-16">
+      <section className="mx-auto max-w-md px-4 py-10 sm:py-16">
         <Card className="rounded-3xl border-border/70 p-6 shadow-card sm:p-8">
           {ok ? (
             <div className="text-center">
