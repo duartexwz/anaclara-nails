@@ -65,8 +65,8 @@ export function PopupUltimoAgendamento({ itens }: { itens: AgendamentoExibicao[]
                 key={l.rotulo}
                 className="flex items-center justify-between gap-3 py-1"
               >
-                <span className="text-muted-foreground">{l.rotulo}</span>
-                <span className="text-right font-medium">{l.valor}</span>
+                <span className="shrink-0 text-muted-foreground">{l.rotulo}</span>
+                <span className="min-w-0 break-words text-right font-medium">{l.valor}</span>
               </div>
             ))}
           </div>

@@ -44,7 +44,6 @@ export function SinoNotificacoes() {
   const [pushPedido, setPushPedido] = useState(false);
   const caixaRef = useRef<HTMLDivElement>(null);
   const sinoRef = useRef<HTMLButtonElement>(null);
-  const [posicao, setPosicao] = useState({ top: 0, direita: 0 });
   const naoLidasRef = useRef(0);
 
   const carregar = useCallback(async (avisarNovas = false) => {
@@ -76,15 +75,28 @@ export function SinoNotificacoes() {
 
   // Mede o sino para ancorar o painel no desktop (via portal, fora do
   // header com blur — blur aprisiona `fixed`, por isso centralizava errado).
+  // Posição 100% inline: não depende do scanner do Tailwind.
+  const [estiloPainel, setEstiloPainel] = useState<React.CSSProperties>({});
   useLayoutEffect(() => {
     if (!aberto) return;
     const medir = () => {
+      if (window.innerWidth < 640) {
+        setEstiloPainel({
+          top: "50%",
+          transform: "translateY(-50%)",
+          left: 16,
+          right: 16,
+          maxHeight: "80dvh",
+        });
+        return;
+      }
       const el = sinoRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      setPosicao({
+      setEstiloPainel({
         top: Math.round(r.bottom + 8),
-        direita: Math.round(window.innerWidth - r.right),
+        right: Math.round(window.innerWidth - r.right),
+        width: 320,
       });
     };
     medir();
@@ -151,13 +163,8 @@ export function SinoNotificacoes() {
         createPortal(
           <div
             ref={caixaRef}
-            className="fixed left-1/2 top-1/2 z-50 flex max-h-[80dvh] w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card sm:left-auto sm:right-[var(--sino-direita)] sm:top-[var(--sino-topo)] sm:mt-0 sm:w-80 sm:translate-x-0 sm:translate-y-0"
-            style={
-              {
-                "--sino-topo": `${posicao.top}px`,
-                "--sino-direita": `${posicao.direita}px`,
-              } as React.CSSProperties
-            }
+            className="fixed z-50 flex flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card"
+            style={estiloPainel}
           >
           <div className="flex shrink-0 items-center justify-between px-5 py-4">
             <p className="font-display text-lg">Notificações</p>
