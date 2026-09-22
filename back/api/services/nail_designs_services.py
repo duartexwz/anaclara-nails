@@ -3,7 +3,7 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
-from api.repositories.nail_designs_repository import NailDesingnsRepository
+from api.repositories.nail_designs_repository import NailDesignsRepository
 from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 from api.schemas.nails_designs_schemas import (
@@ -16,7 +16,7 @@ from api.schemas.nails_designs_schemas import (
 # Cria a classe dos serviços de nail designs (regras, validações e etc)
 class NailDesignsServices:
     def __init__(self):
-        self.nail_designs_repository = NailDesingnsRepository()
+        self.nail_designs_repository = NailDesignsRepository()
 
 
     async def create_nail_design(

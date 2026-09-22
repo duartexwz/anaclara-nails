@@ -19,7 +19,7 @@ class UsuarioList(BaseModel):
     usuarios: list[UsuarioResponse]
 
 class UsuarioUpdate(BaseModel):
-    nome: str
+    nome: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
     type_user_id: Optional[int] = None

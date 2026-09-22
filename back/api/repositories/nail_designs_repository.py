@@ -1,7 +1,7 @@
 from api.repositories.sql_repository import QueryRepository
 from api.schemas.enums import Operador
 
-class NailDesingnsRepository(QueryRepository):
+class NailDesignsRepository(QueryRepository):
     table_name = 'nail_designs'
     campos = {
         'id',

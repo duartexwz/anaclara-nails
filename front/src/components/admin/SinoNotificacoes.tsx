@@ -123,7 +123,7 @@ export function SinoNotificacoes() {
       </button>
 
       {aberto && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card">
+        <div className="fixed left-4 right-4 top-1/2 z-50 -translate-y-1/2 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 sm:translate-y-0">
           <div className="flex items-center justify-between px-5 py-4">
             <p className="font-display text-lg">Notificações</p>
             {naoLidas > 0 && (
@@ -149,7 +149,7 @@ export function SinoNotificacoes() {
             </button>
           )}
 
-          <ul className="max-h-80 space-y-1 overflow-y-auto px-2 pb-2">
+          <ul className="max-h-[50dvh] space-y-1 overflow-y-auto px-2 pb-2 sm:max-h-80">
             {itens.length === 0 && (
               <li className="px-4 py-8 text-center text-sm text-muted-foreground">
                 Nenhuma novidade por aqui.

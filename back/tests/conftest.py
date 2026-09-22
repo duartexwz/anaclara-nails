@@ -110,8 +110,8 @@ def login_as(usuario: UsuarioLogado | None):
 def admin_user():
     return UsuarioLogado(
         id=1,
+        nome='Ana Clara',
         email='ana.clara@anaclaranails.com',
-        password='hash-fake',
         type_user_id=1,
         is_admin=True
     )
@@ -121,8 +121,8 @@ def admin_user():
 def comum_user():
     return UsuarioLogado(
         id=2,
+        nome='Maria Eduarda',
         email='maria.eduarda@email.com',
-        password='hash-fake',
         type_user_id=2,
         is_admin=False
     )

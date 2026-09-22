@@ -73,7 +73,7 @@ class TestLogin:
     async def test_post_sem_csrf_403(self, client, fake_db, as_anon):
         ## /usuarios/ É ISENTO (CADASTRO PÚBLICO); USA ROTA PROTEGIDA
         resposta = await client.post(
-            '/api/v1/clientes/',
+            '/api/v1/clientes',
             json={'nome': 'Ana', 'telefone': '11999999999'},
         )
         assert resposta.status_code == 403
@@ -89,7 +89,7 @@ class TestLogin:
             },
         )
         resposta = await client.post(
-            '/api/v1/usuarios/',
+            '/api/v1/usuarios',
             json={'email': 'a@mail.com', 'password': 'x'},
         )
         assert resposta.status_code == 201
@@ -152,7 +152,7 @@ class TestUsuarios:
             },
         )
         resposta = await client.post(
-            '/api/v1/usuarios/',
+            '/api/v1/usuarios',
             json={'email': 'a@mail.com', 'password': 'x'},
             **csrf(),
         )
@@ -171,7 +171,7 @@ class TestUsuarios:
             },
         )
         resposta = await client.post(
-            '/api/v1/usuarios/',
+            '/api/v1/usuarios',
             json={'email': 'e@mail.com', 'password': 'x', 'type_user_id': 1},
             **csrf(),
         )
@@ -181,7 +181,7 @@ class TestUsuarios:
     async def test_post_duplicado_409(self, client, fake_db, as_anon):
         fake_db.queue_fetchrow({'id': 1})
         resposta = await client.post(
-            '/api/v1/usuarios/',
+            '/api/v1/usuarios',
             json={'email': 'a@mail.com', 'password': 'x'},
             **csrf(),
         )
@@ -189,7 +189,7 @@ class TestUsuarios:
 
     async def test_post_body_invalido_422(self, client, as_anon):
         resposta = await client.post(
-            '/api/v1/usuarios/', json={'email': 'a@mail.com'}, **csrf()
+            '/api/v1/usuarios', json={'email': 'a@mail.com'}, **csrf()
         )
         assert resposta.status_code == 422
 
@@ -204,12 +204,12 @@ class TestUsuarios:
                 }
             ]
         )
-        resposta = await client.get('/api/v1/usuarios/')
+        resposta = await client.get('/api/v1/usuarios')
         assert resposta.status_code == 200
         assert len(resposta.json()['usuarios']) == 1
 
     async def test_get_vazio_404(self, client, fake_db):
-        resposta = await client.get('/api/v1/usuarios/')
+        resposta = await client.get('/api/v1/usuarios')
         assert resposta.status_code == 404
 
     async def test_patch_401_anonimo(self, client, as_anon, fake_db):
@@ -243,7 +243,7 @@ class TestUsuarios:
 class TestAdministradores:
     async def test_post_403_comum(self, client, fake_db, as_user):
         resposta = await client.post(
-            '/api/v1/administradores/',
+            '/api/v1/administradores',
             json={
                 'nome': 'Ana',
                 'email': 'a@mail.com',
@@ -268,7 +268,7 @@ class TestAdministradores:
             },
         )
         resposta = await client.post(
-            '/api/v1/administradores/',
+            '/api/v1/administradores',
             json={
                 'nome': 'Ana',
                 'email': 'a@mail.com',
@@ -292,7 +292,7 @@ class TestAdministradores:
                 }
             ]
         )
-        resposta = await client.get('/api/v1/administradores/')
+        resposta = await client.get('/api/v1/administradores')
         assert resposta.status_code == 200
         assert 'administradores' in resposta.json()
 
@@ -310,21 +310,21 @@ class TestClientes:
             None, None, {'id': 1, 'nome': 'Ana', 'telefone': '111'}
         )
         resposta = await client.post(
-            '/api/v1/clientes/',
+            '/api/v1/clientes',
             json={'nome': 'Ana', 'telefone': '111'},
             **csrf(),
         )
         assert resposta.status_code == 201
 
     async def test_get_401_anonimo(self, client, as_anon, fake_db):
-        resposta = await client.get('/api/v1/clientes/')
+        resposta = await client.get('/api/v1/clientes')
         assert resposta.status_code == 401
 
     async def test_get_200_logado(self, client, fake_db, as_user):
         fake_db.queue_fetch(
             [{'id': 1, 'nome': 'Ana', 'telefone': '111'}]
         )
-        resposta = await client.get('/api/v1/clientes/')
+        resposta = await client.get('/api/v1/clientes')
         assert resposta.status_code == 200
         assert 'clientes' in resposta.json()
 
@@ -371,7 +371,7 @@ class TestAgendamentos:
             {'id': 300},
         )
         resposta = await client.post(
-            '/api/v1/agendamentos/',
+            '/api/v1/agendamentos',
             json={
                 'cliente_id': 1,
                 'modelo_id': 2,
@@ -386,7 +386,7 @@ class TestAgendamentos:
     async def test_post_sinal_invalido_422(self, client, fake_db, as_user):
         fake_db.queue_fetchrow({'id': 2, 'valor_total': 100.0})
         resposta = await client.post(
-            '/api/v1/agendamentos/',
+            '/api/v1/agendamentos',
             json={
                 'cliente_id': 1,
                 'modelo_id': 2,
@@ -402,7 +402,7 @@ class TestAgendamentos:
             {'id': 2, 'valor_total': 100.0}, {'id': 9}
         )
         resposta = await client.post(
-            '/api/v1/agendamentos/',
+            '/api/v1/agendamentos',
             json={
                 'cliente_id': 1,
                 'modelo_id': 2,
@@ -414,7 +414,7 @@ class TestAgendamentos:
         assert resposta.status_code == 409
 
     async def test_get_401_anonimo(self, client, as_anon, fake_db):
-        resposta = await client.get('/api/v1/agendamentos/')
+        resposta = await client.get('/api/v1/agendamentos')
         assert resposta.status_code == 401
 
     async def test_patch_403_comum(self, client, fake_db, as_user):
@@ -448,13 +448,13 @@ MODELO_ROW = {
 class TestModelosUnhas:
     async def test_get_200_publico(self, client, fake_db):
         fake_db.queue_fetch([MODELO_ROW])
-        resposta = await client.get('/api/v1/modelos-unhas/')
+        resposta = await client.get('/api/v1/modelos-unhas')
         assert resposta.status_code == 200
         assert resposta.json()['modelos_unhas'][0]['nome'] == 'Chrome'
 
     async def test_post_403_comum(self, client, fake_db, as_user):
         resposta = await client.post(
-            '/api/v1/modelos-unhas/',
+            '/api/v1/modelos-unhas',
             json={
                 'nome': 'Chrome',
                 'valor_total': 140.0,
@@ -469,7 +469,7 @@ class TestModelosUnhas:
     async def test_post_201_admin(self, client, fake_db, as_admin):
         fake_db.queue_fetchrow(None, MODELO_ROW)
         resposta = await client.post(
-            '/api/v1/modelos-unhas/',
+            '/api/v1/modelos-unhas',
             json={
                 'nome': 'Chrome',
                 'valor_total': 140.0,
@@ -491,14 +491,14 @@ class TestModelosUnhas:
 
 class TestNailDesigns:
     async def test_get_401_anonimo(self, client, as_anon, fake_db):
-        resposta = await client.get('/api/v1/nail-designs/')
+        resposta = await client.get('/api/v1/nail-designs')
         assert resposta.status_code == 401
 
     async def test_post_201_admin(self, client, fake_db, as_admin):
         row = {'id': 1, 'nome': 'Ana', 'cpf': '123', 'telefone': '111'}
         fake_db.queue_fetchrow(None, row)
         resposta = await client.post(
-            '/api/v1/nail-designs/',
+            '/api/v1/nail-designs',
             json={'nome': 'Ana', 'cpf': '123', 'telefone': '111'},
             **csrf(),
         )
@@ -520,13 +520,13 @@ class TestProgramacaoSemanal:
                 }
             ]
         )
-        resposta = await client.get('/api/v1/programacao-semanal/')
+        resposta = await client.get('/api/v1/programacao-semanal')
         assert resposta.status_code == 200
 
     async def test_post_conflito_409(self, client, fake_db, as_admin):
         fake_db.queue_fetchrow({'id': 1})
         resposta = await client.post(
-            '/api/v1/programacao-semanal/',
+            '/api/v1/programacao-semanal',
             json={
                 'profissional_id': 1,
                 'dia_semana': 'Segunda',
@@ -543,13 +543,13 @@ class TestProgramacaoSemanal:
 class TestStatusPagamentos:
     async def test_get_200_logado(self, client, fake_db, as_user):
         fake_db.queue_fetch([{'id': 1, 'nome': 'Pago'}])
-        resposta = await client.get('/api/v1/status-pagamentos/')
+        resposta = await client.get('/api/v1/status-pagamentos')
         assert resposta.status_code == 200
         assert 'status_pagamentos' in resposta.json()
 
     async def test_post_403_comum(self, client, fake_db, as_user):
         resposta = await client.post(
-            '/api/v1/status-pagamentos/',
+            '/api/v1/status-pagamentos',
             json={'nome': 'Pago'},
             **csrf(),
         )
@@ -558,7 +558,7 @@ class TestStatusPagamentos:
     async def test_post_201_admin(self, client, fake_db, as_admin):
         fake_db.queue_fetchrow(None, {'id': 1, 'nome': 'Pago'})
         resposta = await client.post(
-            '/api/v1/status-pagamentos/',
+            '/api/v1/status-pagamentos',
             json={'nome': 'Pago'},
             **csrf(),
         )
@@ -598,7 +598,7 @@ class TestRotasComplementares:
                 }
             ]
         )
-        resposta = await client.get('/api/v1/agendamentos/')
+        resposta = await client.get('/api/v1/agendamentos')
         assert resposta.status_code == 200
         assert 'agendamentos' in resposta.json()
 

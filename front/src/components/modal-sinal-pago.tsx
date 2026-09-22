@@ -38,13 +38,13 @@ export function ModalSinalPago({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-0 overflow-hidden rounded-3xl border-border/70 bg-card p-0 shadow-card">
-        <div className="gradient-primary relative overflow-hidden px-6 py-8 text-center text-primary-foreground">
+        <div className="gradient-primary relative overflow-hidden px-4 py-6 text-center text-primary-foreground sm:px-6 sm:py-8">
           <Sparkles className="absolute left-5 top-5 size-5 opacity-60" />
           <Sparkles className="absolute bottom-6 right-6 size-4 opacity-40" />
-          <span className="mx-auto grid size-16 place-items-center rounded-full bg-white/20 shadow-soft backdrop-blur">
-            <CheckCircle2 className="size-9" />
+          <span className="mx-auto grid size-14 place-items-center rounded-full bg-white/20 shadow-soft backdrop-blur sm:size-16">
+            <CheckCircle2 className="size-8 sm:size-9" />
           </span>
-          <h3 className="mt-4 font-display text-2xl">{titulo}</h3>
+          <h3 className="mt-4 font-display text-xl sm:text-2xl">{titulo}</h3>
           <p className="mx-auto mt-1.5 max-w-xs text-sm text-primary-foreground/85">
             {descricao}
           </p>
@@ -55,20 +55,20 @@ export function ModalSinalPago({
           ) : null}
         </div>
 
-        <div className="space-y-4 px-6 py-6">
+        <div className="space-y-3 px-4 py-5 sm:space-y-4 sm:px-6 sm:py-6">
           {linhas.length > 0 && (
-            <div className="rounded-2xl border border-border bg-muted/50 p-4 text-sm">
+            <div className="rounded-2xl border border-border bg-muted/50 p-3 text-sm sm:p-4">
               {linhas.map((l) => (
                 <div
                   key={l.rotulo}
                   className="flex items-center justify-between gap-3 py-1"
                 >
-                  <span className="text-muted-foreground">{l.rotulo}</span>
+                  <span className="shrink-0 text-muted-foreground">{l.rotulo}</span>
                   <span
                     className={
                       l.destaque
                         ? "font-display text-lg text-primary"
-                        : "text-right font-medium"
+                        : "break-words text-right font-medium"
                     }
                   >
                     {l.valor}

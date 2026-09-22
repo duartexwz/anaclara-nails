@@ -191,7 +191,56 @@ function Agendamentos() {
             Não foi possível carregar a agenda. Verifique sua conexão.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            {/* Mobile: cards sem scroll lateral */}
+            <ul className="space-y-3 p-4 md:hidden">
+              {lista.map((a) => (
+                <li
+                  key={a.id}
+                  className="rounded-2xl border border-border/70 bg-card p-4"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{a.cliente}</p>
+                      <p className="text-xs text-muted-foreground">
+                        #{a.id} · {a.telefone}
+                      </p>
+                    </div>
+                    <Pill label={a.status} tone={statusTone(a.status)} />
+                  </div>
+                  <p className="mt-2 truncate text-sm text-muted-foreground">{a.modelo}</p>
+                  <p className="mt-1 font-display text-lg leading-tight">
+                    {a.data} · {a.hora}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-primary">
+                    {brl(a.sinal)}{" "}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      · {a.pagamento}
+                    </span>
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl border-secondary/50 text-primary hover:bg-accent"
+                      onClick={() => abrirAntecipar(a)}
+                    >
+                      <Zap className="mr-1 size-3.5" /> Antecipar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl"
+                      onClick={() => abrirRemarcar(a)}
+                    >
+                      <CalendarClock className="mr-1 size-3.5" /> Remarcar
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            {/* Desktop: tabela */}
+            <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
@@ -249,7 +298,8 @@ function Agendamentos() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
         {!isPending && !isError && lista.length === 0 && (
           <p className="px-6 py-10 text-center text-sm text-muted-foreground">

@@ -9,7 +9,17 @@ from api.services.notificacoes_services import (
     disparar_notificacao_admin,
 )
 from api.services.push_service import enviar_push_admins, push_configurado
+from api.settings import settings
 from tests.conftest import CSRF_COOKIES, CSRF_HEADERS
+
+
+@pytest.fixture
+def sem_push(monkeypatch):
+    ## ISOLA OS TESTES DO .ENV REAL (QUE TEM VAPID CONFIGURADO)
+    monkeypatch.setattr(settings, 'VAPID_PUBLIC_KEY', '')
+    monkeypatch.setattr(settings, 'VAPID_PRIVATE_KEY', '')
+    monkeypatch.setattr(settings, 'VAPID_SUBJECT', '')
+    return settings
 
 
 class TestNotificacoesServices:
@@ -23,13 +33,12 @@ class TestNotificacoesServices:
             )
         assert exc.value.status_code == HTTPStatus.FORBIDDEN
 
-    async def test_get_vazio_404(self, fake_db, admin_user):
+    async def test_get_vazio_200_lista_vazia(self, fake_db, admin_user):
         fake_db.fetch_default = []
-        with pytest.raises(HTTPException) as exc:
-            await self.svc.get_notificacoes(
-                fake_db, NotificacaoFilter(), admin_user
-            )
-        assert exc.value.status_code == HTTPStatus.NOT_FOUND
+        resultado = await self.svc.get_notificacoes(
+            fake_db, NotificacaoFilter(), admin_user
+        )
+        assert resultado == []
 
     async def test_get_ok(self, fake_db, admin_user):
         fake_db.queue_fetch([{'id': 1, 'lida': False}])
@@ -83,7 +92,7 @@ class TestNotificacoesServices:
 
 
 class TestPushService:
-    async def test_sem_config_nao_envia(self, fake_db):
+    async def test_sem_config_nao_envia(self, fake_db, sem_push):
         assert push_configurado() is False
         resultado = await enviar_push_admins(
             fake_db, 'T', 'C', None
@@ -94,7 +103,7 @@ class TestPushService:
 
 class TestRotasNotificacoes:
     async def test_get_401_anonimo(self, client, as_anon, fake_db):
-        resposta = await client.get('/api/v1/notificacoes/')
+        resposta = await client.get('/api/v1/notificacoes')
         assert resposta.status_code == 401
 
     async def test_get_200(self, client, fake_db, as_admin):
@@ -104,7 +113,7 @@ class TestRotasNotificacoes:
                 'mensagem': 'M', 'agendamento_id': 7, 'lida': False,
             }]
         )
-        resposta = await client.get('/api/v1/notificacoes/')
+        resposta = await client.get('/api/v1/notificacoes')
         assert resposta.status_code == 200
         assert len(resposta.json()['notificacoes']) == 1
 
@@ -138,7 +147,7 @@ class TestRotasPush:
         assert resposta.status_code == 200
         assert 'public_key' in resposta.json()
 
-    async def test_post_sem_config_503(self, client, fake_db, as_admin):
+    async def test_post_sem_config_503(self, client, fake_db, as_admin, sem_push):
         resposta = await client.post(
             '/api/v1/push/subscriptions',
             json={

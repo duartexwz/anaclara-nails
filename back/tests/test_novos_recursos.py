@@ -174,7 +174,7 @@ class TestRotasNovas:
             }
         )
         resposta = await client.post(
-            '/api/v1/mensagens/',
+            '/api/v1/mensagens',
             json={'remetente': 'cliente', 'texto': 'Oi'},
             headers=CSRF_HEADERS,
             cookies=CSRF_COOKIES,
@@ -188,7 +188,7 @@ class TestRotasNovas:
             {'id': 3, 'data': '2026-12-25', 'motivo': 'Natal'}
         )
         resposta = await client.post(
-            '/api/v1/bloqueios/',
+            '/api/v1/bloqueios',
             json={'data': '2026-12-25', 'motivo': 'Natal'},
             headers=CSRF_HEADERS,
             cookies=CSRF_COOKIES,

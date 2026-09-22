@@ -312,7 +312,7 @@ class TestRotasPagamento:
             ),
         )
         resposta = await client.post(
-            '/api/v1/pagamentos/',
+            '/api/v1/pagamentos',
             json={
                 'agendamento_id': 10,
                 'transaction_amount': 50.0,
@@ -331,7 +331,7 @@ class TestRotasPagamento:
         from tests.conftest import CSRF_COOKIES, CSRF_HEADERS
 
         resposta = await client.post(
-            '/api/v1/pagamentos/',
+            '/api/v1/pagamentos',
             json={
                 'agendamento_id': 10,
                 'transaction_amount': 50.0,

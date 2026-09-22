@@ -8,7 +8,10 @@ ENV_FILE = BASE_DIR / '.env'
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
-        env_file_encoding='utf-8'
+        env_file_encoding='utf-8',
+        # Provedores (Neon, Vercel, CI) injetam variáveis próprias;
+        # desconhecidas devem ser ignoradas, nunca derrubar o boot.
+        extra='ignore'
     )
 
     # Aplicação

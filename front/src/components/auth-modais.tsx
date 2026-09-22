@@ -49,13 +49,13 @@ export function AuthModais({ open, modo, onOpenChange, onModo, onEntrar, onCadas
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90dvh] max-w-md flex-col gap-0 overflow-hidden rounded-3xl border-border/70 bg-card p-0">
-        <div className="gradient-primary shrink-0 px-6 py-5 text-primary-foreground">
+        <div className="gradient-primary shrink-0 px-4 py-4 text-primary-foreground sm:px-6 sm:py-5">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] opacity-90">
             <Sparkles className="size-3.5" />
             Ana Clara Nails
           </div>
           <DialogHeader className="mt-2 space-y-1 text-left">
-            <DialogTitle className="font-display text-2xl">
+            <DialogTitle className="font-display text-xl sm:text-2xl">
               {modo === "login" && "Bem-vinda de volta"}
               {modo === "cadastro" && "Criar minha conta"}
               {modo === "recuperar" && "Esqueci minha senha"}
@@ -68,7 +68,7 @@ export function AuthModais({ open, modo, onOpenChange, onModo, onEntrar, onCadas
           </DialogHeader>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
           {erro && (
             <p className="mb-4 rounded-xl bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
               {erro}
