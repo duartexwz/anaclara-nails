@@ -6,14 +6,14 @@
  *  - GETs da API: StaleWhileRevalidate (dados carregados mesmo offline)
  *  - POST/PUT/DELETE e terceiros (ex.: Mercado Pago): direto à rede
  */
-const VERSAO = "v3";
+const VERSAO = "v4";
 const CACHE_PAGINAS = `ana-clara-paginas-${VERSAO}`;
 const CACHE_IMAGENS = `ana-clara-imagens-${VERSAO}`;
 const CACHE_ESTATICOS = `ana-clara-estaticos-${VERSAO}`;
 const CACHE_API = `ana-clara-api-${VERSAO}`;
 const TODOS_CACHES = [CACHE_PAGINAS, CACHE_IMAGENS, CACHE_ESTATICOS, CACHE_API];
 
-const PRECACHE = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
+const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 const PAGINA_OFFLINE = `<!doctype html><html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -167,8 +167,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(titulo, {
       body: dados.body || "Novidade na sua agenda.",
-      icon: "/icon-192.png",
-      badge: "/icon-32.png",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-32.png",
       tag: dados.agendamento_id
         ? `agendamento-${dados.agendamento_id}`
         : "ana-clara-nails",

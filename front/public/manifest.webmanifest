@@ -14,13 +14,13 @@
   "categories": ["beauty", "lifestyle"],
   "icons": [
     {
-      "src": "/maskable-512.png",
+      "src": "/icons/maskable-512.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/maskable-512.png",
+      "src": "/icons/maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -32,21 +32,21 @@
       "short_name": "Agendar",
       "description": "Escolha o modelo e reserve seu horário",
       "url": "/agendamento",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/maskable-512.png", "sizes": "192x192" }]
     },
     {
       "name": "Catálogo",
       "short_name": "Catálogo",
       "description": "Ver modelos de unha",
       "url": "/catalogo",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/maskable-512.png", "sizes": "192x192" }]
     },
     {
       "name": "Mensagens",
       "short_name": "Mensagens",
       "description": "Falar com a Ana Clara",
       "url": "/mensagens",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/maskable-512.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -248,7 +248,7 @@ export function AdminShell({
               </div>
             </header>
 
-            <div className="space-y-8 px-5 pb-16 pt-7 sm:px-8">
+            <div className="space-y-6 px-4 pb-12 pt-5 sm:space-y-8 sm:px-8 sm:pb-16 sm:pt-7">
               {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
               {children}
             </div>
