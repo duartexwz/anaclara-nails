@@ -151,7 +151,7 @@ export function SinoNotificacoes() {
         createPortal(
           <div
             ref={caixaRef}
-            className="fixed left-4 right-4 top-1/2 z-50 -translate-y-1/2 overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card sm:left-auto sm:right-[var(--sino-direita)] sm:top-[var(--sino-topo)] sm:mt-0 sm:w-80 sm:translate-y-0"
+            className="fixed left-1/2 top-1/2 z-50 flex max-h-[80dvh] w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl border border-border/70 bg-card shadow-card sm:left-auto sm:right-[var(--sino-direita)] sm:top-[var(--sino-topo)] sm:mt-0 sm:w-80 sm:translate-x-0 sm:translate-y-0"
             style={
               {
                 "--sino-topo": `${posicao.top}px`,
@@ -159,7 +159,7 @@ export function SinoNotificacoes() {
               } as React.CSSProperties
             }
           >
-          <div className="flex items-center justify-between px-5 py-4">
+          <div className="flex shrink-0 items-center justify-between px-5 py-4">
             <p className="font-display text-lg">Notificações</p>
             {naoLidas > 0 && (
               <button
@@ -184,7 +184,7 @@ export function SinoNotificacoes() {
             </button>
           )}
 
-          <ul className="max-h-[50dvh] space-y-1 overflow-y-auto px-2 pb-2 sm:max-h-80">
+          <ul className="max-h-[50dvh] min-h-0 flex-1 space-y-1 overflow-y-auto px-2 pb-2 sm:max-h-80 sm:flex-none">
             {itens.length === 0 && (
               <li className="px-4 py-8 text-center text-sm text-muted-foreground">
                 Nenhuma novidade por aqui.
@@ -225,7 +225,7 @@ export function SinoNotificacoes() {
               );
             })}
           </ul>
-          <p className="border-t border-border/60 px-5 py-2.5 text-[11px] text-muted-foreground">
+          <p className="shrink-0 border-t border-border/60 px-5 py-2.5 text-[11px] text-muted-foreground">
             Atualizado agora · {naoLidas} não lida{naoLidas === 1 ? "" : "s"}
           </p>
           </div>,
