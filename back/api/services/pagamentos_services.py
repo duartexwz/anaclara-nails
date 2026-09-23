@@ -164,8 +164,25 @@ class PagamentosServices:
                 status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             )
 
-        # PIX EXIGE CPF DO PAGADOR NA API DO MP
+        # PIX EXIGE CPF DO PAGADOR NA API DO MP — SE O BRICK NÃO ENVIOU,
+        # USA O CPF JÁ CADASTRADO NO CLIENTE (MEUS DADOS) COMO FALLBACK.
         payer = dados.payer.model_dump(exclude_unset=True)
+        if dados.payment_method_id == 'pix' and not payer.get(
+            'identification'
+        ):
+            from api.repositories.clientes_repository import (
+                ClientesRepository,
+            )
+
+            cliente = await ClientesRepository().buscar_por_id(
+                db, agendamento['cliente_id']
+            )
+            cpf_cliente = (cliente or {}).get('cpf')
+            if cpf_cliente:
+                payer['identification'] = {
+                    'type': 'CPF',
+                    'number': cpf_cliente,
+                }
         if dados.payment_method_id == 'pix' and not payer.get(
             'identification'
         ):
@@ -174,7 +191,6 @@ class PagamentosServices:
                 status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             )
 
-        payer = dados.payer.model_dump(exclude_unset=True)
         corpo = {
             'transaction_amount': dados.transaction_amount,
             'description': dados.description
