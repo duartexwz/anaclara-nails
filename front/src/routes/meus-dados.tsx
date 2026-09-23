@@ -37,7 +37,8 @@ import {
 } from "@/lib/api";
 import { statusEstilo, brl, fmtDataCurta, mapModeloApi, statusExibicao } from "@/lib/dados";
 import { mascararCpf, mascararTelefone, apenasDigitos } from "@/lib/masks";
-import { Fingerprint, Lock, Save, CalendarX2, History, Loader2, DiamondPlus } from "lucide-react";
+import { Fingerprint, Lock, Save, CalendarX2, History, Loader2, DiamondPlus, CreditCard } from "lucide-react";
+import { ModalPagamento } from "@/components/modal-pagamento";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/meus-dados")({
@@ -69,6 +70,7 @@ function MeusDados() {
   const [prefWhatsapp, setPrefWhatsapp] = useState(false);
   const [novaSenha, setNovaSenha] = useState("");
   const [confSenha, setConfSenha] = useState("");
+  const [pagamentoAgId, setPagamentoAgId] = useState<number | null>(null);
 
   const clientesQuery = useQuery({
     queryKey: ["clientes"],
@@ -337,10 +339,20 @@ function MeusDados() {
                         <Badge variant="outline" className={statusEstilo[st]}>{st}</Badge>
                       </div>
                       {st !== "Cancelado" && (
+                        <div className="mt-3 flex flex-col gap-2 min-[420px]:flex-row">
+                          {st === "Aguardando sinal" && (
+                            <Button
+                              size="sm"
+                              className="flex-1 gradient-primary text-primary-foreground shadow-soft"
+                              onClick={() => setPagamentoAgId(a.id)}
+                            >
+                              <CreditCard className="mr-2 size-4" /> Pagar sinal {brl(a.sinal)}
+                            </Button>
+                          )}
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="mt-3 text-destructive hover:bg-destructive/10">
-                              <CalendarX2 className="mr-2 size-4" /> Cancelar agendamento
+                            <Button variant="ghost" size="sm" className="flex-1 text-destructive hover:bg-destructive/10">
+                              <CalendarX2 className="mr-2 size-4" /> Cancelar
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="rounded-3xl border-border/70 bg-card shadow-card">
@@ -362,6 +374,7 @@ function MeusDados() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
+                        </div>
                       )}
                     </div>
                   );
@@ -410,6 +423,29 @@ function MeusDados() {
       </Dialog>
 
       <Rodape />
+
+      {(() => {
+        const ag = meusAgendamentos.find((x) => x.id === pagamentoAgId) ?? null;
+        if (!ag) return null;
+        return (
+          <ModalPagamento
+            open={pagamentoAgId != null}
+            onOpenChange={(o) => {
+              if (!o) setPagamentoAgId(null);
+            }}
+            modelo={nomeModelo(ag.modelo_id)}
+            valor={ag.sinal * 2}
+            data={fmtDataCurta(ag.data)}
+            hora={ag.horario.slice(0, 5)}
+            agendamentoId={ag.id}
+            email={usuario?.email ?? ""}
+            onConfirmado={() => {
+              setPagamentoAgId(null);
+              void queryClient.invalidateQueries({ queryKey: ["agendamentos"] });
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import {
   GhostButton,
 } from "@/components/admin/AdminShell";
 import { useAgenda, type AgendamentoExibicao } from "@/hooks/useAgenda";
-import { ApiError, enviarMensagemApi } from "@/lib/api";
+import { ApiError, enviarMensagemApi, excluirAgendamentoApi } from "@/lib/api";
 import { brl } from "@/lib/dados";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -30,6 +30,7 @@ import {
   Users,
   ArrowRight,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -55,6 +56,7 @@ function Agendamentos() {
   const [busca, setBusca] = useState("");
   const [antecipar, setAntecipar] = useState<AgendamentoExibicao | null>(null);
   const [remarcar, setRemarcar] = useState<AgendamentoExibicao | null>(null);
+  const [cancelar, setCancelar] = useState<AgendamentoExibicao | null>(null);
   const [etapaAntecipacao, setEtapaAntecipacao] = useState<"mensagem" | "aguardando" | "recusou">("mensagem");
   const [filaIdx, setFilaIdx] = useState(0);
   const [msgAntecipar, setMsgAntecipar] = useState("");
@@ -89,6 +91,20 @@ function Agendamentos() {
     },
     onError: (e) => {
       toast.error(e instanceof ApiError ? e.message : "Não foi possível enviar.");
+    },
+  });
+
+  const cancelarMutation = useMutation({
+    mutationFn: (id: number) => excluirAgendamentoApi(id),
+    onSuccess: () => {
+      toast.success("Agendamento cancelado. O cliente foi avisado no mural.");
+      setCancelar(null);
+      void queryClient.invalidateQueries({ queryKey: ["agendamentos"] });
+      void queryClient.invalidateQueries({ queryKey: ["clientes"] });
+      void queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    },
+    onError: (e) => {
+      toast.error(e instanceof ApiError ? e.message : "Não foi possível cancelar.");
     },
   });
 
@@ -292,6 +308,16 @@ function Agendamentos() {
                         >
                           <CalendarClock className="mr-1 size-3.5" /> Remarcar
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          title="Cancelar agendamento"
+                          onClick={() => setCancelar(a)}
+                        >
+                          <Trash2 className="size-3.5" />
+                          <span className="sr-only">Cancelar</span>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -494,6 +520,33 @@ function Agendamentos() {
                 <Send className="size-4" /> Enviar pedido
               </PrimaryButton>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Cancelar */}
+      <Dialog open={!!cancelar} onOpenChange={(o) => !o && setCancelar(null)}>
+        <DialogContent className="max-w-md rounded-3xl border-border/70 bg-card shadow-card">
+          <DialogHeader className="text-left">
+            <DialogTitle className="flex items-center gap-2 font-display text-xl sm:text-2xl">
+              <Trash2 className="size-5 text-destructive" /> Cancelar #{cancelar?.id}?
+            </DialogTitle>
+            <DialogDescription>
+              {cancelar?.cliente} · {cancelar?.data} às {cancelar?.hora}. O cliente
+              é avisado no mural e o horário volta a ficar livre.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 min-[420px]:flex-row">
+            <GhostButton className="flex-1" onClick={() => setCancelar(null)}>
+              Manter
+            </GhostButton>
+            <Button
+              className="flex-1 rounded-2xl bg-destructive text-destructive-foreground shadow-soft hover:bg-destructive/90"
+              disabled={cancelarMutation.isPending}
+              onClick={() => cancelar && cancelarMutation.mutate(cancelar.id)}
+            >
+              {cancelarMutation.isPending ? "Cancelando..." : "Confirmar cancelamento"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
