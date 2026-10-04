@@ -2,16 +2,17 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Sparkles, LogIn, LogOut, ShieldCheck, Download } from "lucide-react";
+import { Menu, LogIn, LogOut, ShieldCheck, Download } from "lucide-react";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
 import { useAuth } from "@/lib/auth";
 import { useInstalavel, solicitarInstalacao } from "@/lib/pwa";
 import { toast } from "sonner";
 
 const navegacao = [
-  { para: "/", rotulo: "Home" },
+  { para: "/", rotulo: "Início" },
   { para: "/catalogo", rotulo: "Catálogo" },
-  { para: "/agendamento", rotulo: "Agendamento" },
+  { para: "/agendamento", rotulo: "Agendar" },
+  { para: "/meus-agendamentos", rotulo: "Meus agendamentos" },
   { para: "/mensagens", rotulo: "Mensagens" },
   { para: "/meus-dados", rotulo: "Meus dados" },
 ] as const;
@@ -38,14 +39,16 @@ export function Cabecalho() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-full gradient-primary text-primary-foreground">
-            <Sparkles className="size-4" />
-          </span>
-          <span className="leading-tight">
-            <span className="block font-display text-lg">Ana Clara</span>
-            <span className="block text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">Nails</span>
-          </span>
+        <Link to="/" className="flex items-center gap-2" aria-label="Ana Clara Nails — início">
+          <img
+            src="/icons/logo-mono.png"
+            alt=""
+            aria-hidden="true"
+            width={472}
+            height={472}
+            className="size-10 w-auto shrink-0"
+          />
+          <span className="font-display text-[1.7rem] leading-none">Ana Clara</span>
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm md:flex">

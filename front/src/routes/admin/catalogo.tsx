@@ -440,7 +440,7 @@ function CatalogoAdmin() {
             </div>
           </div>
           <Button
-            className="w-full gradient-primary text-primary-foreground shadow-soft"
+            className="w-full rounded-full gradient-primary text-primary-foreground shadow-soft"
             disabled={salvarMutation.isPending}
             onClick={() => salvarMutation.mutate()}
           >

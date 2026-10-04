@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
+import { PageTitle } from "@/components/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -51,14 +52,12 @@ function Catalogo() {
     <div className="min-h-screen">
       <Cabecalho />
 
-      <section className="gradient-soft">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
-          <p className="text-xs uppercase tracking-[0.3em] text-secondary">Catálogo</p>
-          <h1 className="mt-2 font-display text-3xl sm:text-4xl">Todos os modelos</h1>
-          <p className="mt-3 max-w-lg text-muted-foreground">
-            Clique em um modelo para escolhê-lo e seguir direto para o agendamento.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+      <PageTitle eyebrow="Catálogo" title="Todos os modelos">
+        Clique em um modelo para escolhê-lo e seguir direto para o agendamento.
+      </PageTitle>
+
+      <section className="mx-auto max-w-6xl px-4 pb-8 sm:pb-12">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="relative w-full max-w-xs">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -84,7 +83,6 @@ function Catalogo() {
               ))}
             </div>
           </div>
-        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8 sm:py-12">

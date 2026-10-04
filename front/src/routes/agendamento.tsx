@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
+import { PageTitle } from "@/components/SiteLayout";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
 import { useAuth } from "@/lib/auth";
 import { ModalPagamento } from "@/components/modal-pagamento";
@@ -269,15 +270,9 @@ function Agendamento() {
     return (
       <div className="min-h-screen">
         <Cabecalho />
-        <section className="gradient-soft">
-          <div className="mx-auto max-w-5xl px-4 py-10">
-            <p className="text-xs uppercase tracking-[0.3em] text-secondary">Agendamento</p>
-            <h1 className="mt-2 font-display text-3xl sm:text-4xl">Reserve seu horário</h1>
-            <p className="mt-3 max-w-lg text-muted-foreground">
-              Para agendar, entre na sua conta ou crie uma gratuitamente. Leva menos de um minuto.
-            </p>
-          </div>
-        </section>
+        <PageTitle eyebrow="Agendamento" title="Reserve seu horário">
+          Para agendar, entre na sua conta ou crie uma gratuitamente. Leva menos de um minuto.
+        </PageTitle>
         <section className="mx-auto max-w-md px-4 pb-16">
           <Card className="rounded-3xl border-border/70 p-6 text-center shadow-card sm:p-8">
             <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-soft">
@@ -325,11 +320,10 @@ function Agendamento() {
     <div className="min-h-screen">
       <Cabecalho />
 
-      <section className="gradient-soft">
-        <div className="mx-auto max-w-5xl px-4 py-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-secondary">Agendamento</p>
-          <h1 className="mt-2 font-display text-4xl">Reserve seu horário</h1>
-          <div className="mt-8 flex flex-wrap gap-2">
+      <PageTitle eyebrow="Agendamento" title="Reserve seu horário" />
+
+      <section className="mx-auto max-w-5xl px-4 pb-2">
+          <div className="flex flex-wrap gap-2">
             {etapas.map((e) => (
               <button
                 key={e.id}
@@ -347,7 +341,6 @@ function Agendamento() {
               </button>
             ))}
           </div>
-        </div>
       </section>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10 lg:grid-cols-[1fr_20rem]">
@@ -621,8 +614,8 @@ function Agendamento() {
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <Card className="rounded-3xl border-border/70 p-5 shadow-card">
-            <p className="text-xs uppercase tracking-[0.3em] text-secondary">Resumo</p>
+          <Card className="rounded-3xl border-transparent bg-primary p-5 text-primary-foreground shadow-card">
+            <p className="font-script text-3xl">Resumo</p>
             {modelo ? (
               <>
                 <FotoModelo
@@ -632,14 +625,14 @@ function Agendamento() {
                   imgClassName="mt-4 aspect-square w-full rounded-2xl object-cover"
                 />
                 <h3 className="mt-4 font-display text-xl">{modelo.nome}</h3>
-                <Badge variant="secondary" className="mt-2 bg-accent text-accent-foreground">{modelo.categoria}</Badge>
-                <Separator className="my-4" />
-                <Item rotulo="Horário" valor={slot ? `${slot.dataCurta} · ${slot.hora}` : "—"} />
-                <Item rotulo="Total" valor={brl(modelo.preco)} />
-                <Item rotulo="Sinal (50%)" valor={brl(modelo.preco / 2)} destaque />
+                <Badge variant="secondary" className="mt-2 bg-primary-foreground/15 text-primary-foreground">{modelo.categoria}</Badge>
+                <Separator className="my-4 bg-primary-foreground/20" />
+                <Item claro rotulo="Horário" valor={slot ? `${slot.dataCurta} · ${slot.hora}` : "—"} />
+                <Item claro rotulo="Total" valor={brl(modelo.preco)} />
+                <Item claro rotulo="Sinal (50%)" valor={brl(modelo.preco / 2)} destaque />
               </>
             ) : (
-              <p className="mt-4 text-sm text-muted-foreground">
+              <p className="mt-4 text-sm text-primary-foreground/70">
                 Escolha um modelo para ver o resumo.
               </p>
             )}
@@ -668,11 +661,11 @@ function Agendamento() {
   );
 }
 
-function Item({ rotulo, valor, destaque }: { rotulo: string; valor: string; destaque?: boolean }) {
+function Item({ rotulo, valor, destaque, claro }: { rotulo: string; valor: string; destaque?: boolean; claro?: boolean }) {
   return (
     <div className="flex items-center justify-between py-1 text-sm">
-      <span className="text-muted-foreground">{rotulo}</span>
-      <span className={destaque ? "font-display text-lg text-primary" : "font-medium"}>{valor}</span>
+      <span className={claro ? "text-primary-foreground/70" : "text-muted-foreground"}>{rotulo}</span>
+      <span className={destaque ? `font-display text-lg ${claro ? "text-primary-foreground" : "text-primary"}` : "font-medium"}>{valor}</span>
     </div>
   );
 }

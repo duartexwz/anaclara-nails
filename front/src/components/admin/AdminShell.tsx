@@ -145,10 +145,13 @@ export function AdminShell({
           >
             <div>
               <div className="relative px-2">
-                <p className="font-display text-2xl leading-tight">Ana Clara</p>
-                <p className="text-xs uppercase tracking-[0.35em] text-sidebar-foreground/60">
-                  Nails Studio
-                </p>
+                <img
+                  src="/icons/logo-ana-clara.png"
+                  alt="Ana Clara Nails"
+                  width={884}
+                  height={762}
+                  className="h-16 w-auto rounded-2xl bg-white px-3 py-1.5"
+                />
                 <button type="button" onClick={() => setOpenNav(false)} className="lg:hidden absolute top-0 right-0 size-9 items-center justify-center rounded-xl text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" aria-label="Fechar menu">
                   <X className="size-5" />
                 </button>
@@ -364,7 +367,7 @@ export function PrimaryButton({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-soft transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-gradient-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-soft transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
     >
       {children}
     </button>
@@ -383,7 +386,7 @@ export function GhostButton({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-card px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
     >
       {children}
     </button>

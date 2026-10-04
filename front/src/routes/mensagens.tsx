@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
+import { PageTitle } from "@/components/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,15 +75,9 @@ function Mensagens() {
   return (
     <div className="min-h-screen">
       <Cabecalho />
-      <section className="gradient-soft">
-        <div className="mx-auto max-w-3xl px-4 py-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-secondary">Comunicação</p>
-          <h1 className="mt-2 font-display text-3xl sm:text-4xl">Mensagens</h1>
-          <p className="mt-3 text-muted-foreground">
-            Pedidos de antecipação ou remarcação da Ana Clara chegam aqui (RF16).
-          </p>
-        </div>
-      </section>
+      <PageTitle eyebrow="Comunicação" title="Mensagens">
+        Pedidos de antecipação ou remarcação da Ana Clara chegam aqui (RF16).
+      </PageTitle>
       <section className="mx-auto max-w-3xl space-y-4 px-4 py-10">
         {mensagensQuery.isPending ? (
           <>

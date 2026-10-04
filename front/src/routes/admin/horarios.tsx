@@ -423,7 +423,7 @@ const programacoes: ProgramacaoApi[] = dias
             </div>
           </div>
           <Button
-            className="w-full gradient-primary text-primary-foreground"
+            className="w-full rounded-full gradient-primary text-primary-foreground"
             disabled={bloqueioMutation.isPending}
             onClick={() => bloqueioMutation.mutate()}
           >

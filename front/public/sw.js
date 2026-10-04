@@ -6,23 +6,23 @@
  *  - GETs da API: StaleWhileRevalidate (dados carregados mesmo offline)
  *  - POST/PUT/DELETE e terceiros (ex.: Mercado Pago): direto à rede
  */
-const VERSAO = "v5";
+const VERSAO = "v8";
 const CACHE_PAGINAS = `ana-clara-paginas-${VERSAO}`;
 const CACHE_IMAGENS = `ana-clara-imagens-${VERSAO}`;
 const CACHE_ESTATICOS = `ana-clara-estaticos-${VERSAO}`;
 const CACHE_API = `ana-clara-api-${VERSAO}`;
 const TODOS_CACHES = [CACHE_PAGINAS, CACHE_IMAGENS, CACHE_ESTATICOS, CACHE_API];
 
-const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.jpg", "/icons/icon-512.jpg"];
+const PRECACHE = ["/", "/manifest.webmanifest", "/icons/icon-192.jpg", "/icons/icon-512.jpg", "/icons/logo-ana-clara.png", "/icons/logo-mono.png"];
 
 const PAGINA_OFFLINE = `<!doctype html><html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ana Clara Nails — Offline</title>
-<style>body{font-family:system-ui,sans-serif;background:#f4f1fd;color:#3b3470;
+<style>body{font-family:system-ui,sans-serif;background:#F2F7FE;color:#20395E;
 display:grid;place-items:center;min-height:100dvh;margin:0;text-align:center;padding:24px}
-.card{background:#fff;border-radius:24px;padding:32px;max-width:340px;box-shadow:0 18px 40px -24px #6959CD73}
-h1{font-size:22px;margin:0 0 8px}p{font-size:14px;color:#6b6580}
-button{margin-top:16px;background:linear-gradient(135deg,#6959CD,#836FFF);color:#fff;
+.card{background:#fff;border-radius:24px;padding:32px;max-width:340px;box-shadow:0 18px 40px -24px #2E7CC473}
+h1{font-size:22px;margin:0 0 8px}p{font-size:14px;color:#4A6A93}
+button{margin-top:16px;background:linear-gradient(135deg,#2E7CC4,#6FADE3);color:#fff;
 border:0;border-radius:14px;padding:12px 24px;font-size:14px;cursor:pointer}</style></head>
 <body><div class="card"><h1>Você está offline</h1>
 <p>Verifique sua conexão. Seus dados salvos continuam disponíveis.</p>

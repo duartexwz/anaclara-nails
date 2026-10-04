@@ -95,7 +95,7 @@ export function AuthModais({ open, modo, onOpenChange, onModo, onEntrar, onCadas
                   Esqueci minha senha
                 </button>
               </div>
-              <Button type="submit" className="w-full gradient-primary text-primary-foreground shadow-soft" disabled={carregando}>
+              <Button type="submit" className="w-full rounded-full gradient-primary text-primary-foreground shadow-soft" disabled={carregando}>
                 {carregando ? "Entrando..." : "Entrar"}
               </Button>
               <Separator />
@@ -131,7 +131,7 @@ export function AuthModais({ open, modo, onOpenChange, onModo, onEntrar, onCadas
                 <Checkbox className="mt-0.5" defaultChecked />
                 Autorizo o tratamento dos meus dados conforme a LGPD (RNF02).
               </label>
-              <Button type="submit" className="w-full gradient-primary text-primary-foreground shadow-soft" disabled={carregando}>
+              <Button type="submit" className="w-full rounded-full gradient-primary text-primary-foreground shadow-soft" disabled={carregando}>
                 {carregando ? "Criando conta..." : "Criar conta"}
               </Button>
               <VoltarLogin onModo={onModo} />
@@ -153,7 +153,7 @@ export function AuthModais({ open, modo, onOpenChange, onModo, onEntrar, onCadas
               <p className="rounded-2xl bg-muted p-3 text-xs text-muted-foreground">
                 O link expira em 30 minutos e leva para a tela de nova senha.
               </p>
-              <Button type="submit" className="w-full gradient-primary text-primary-foreground shadow-soft" disabled={carregando}>
+              <Button type="submit" className="w-full rounded-full gradient-primary text-primary-foreground shadow-soft" disabled={carregando}>
                 {carregando ? "Enviando..." : "Enviar link de redefinição"}
               </Button>
               <VoltarLogin onModo={onModo} />

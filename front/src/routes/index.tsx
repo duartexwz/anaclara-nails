@@ -67,12 +67,12 @@ function Home() {
               rápido e sem troca de mensagens para marcar.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="w-full gradient-primary text-primary-foreground shadow-soft sm:w-auto">
+              <Button asChild size="lg" className="w-full rounded-full gradient-primary text-primary-foreground shadow-soft sm:w-auto">
                 <Link to="/agendamento">
                   <CalendarHeart className="mr-2 size-4" /> Realizar agendamento
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="w-full border-primary/40 text-primary sm:w-auto">
+              <Button asChild size="lg" variant="outline" className="w-full rounded-full border-primary/40 text-primary sm:w-auto">
                 <Link to="/catalogo">Catálogo completo</Link>
               </Button>
             </div>
@@ -82,6 +82,7 @@ function Home() {
             </div>
           </div>
           <div className="relative">
+            <div aria-hidden="true" className="absolute -inset-3 rounded-[2.5rem] bg-secondary/25 blur-[1px] sm:-inset-4" />
             <img
               src={heroImg}
               alt="Esmaltes lilás e lavanda sobre mármore em estúdio de nail design"
@@ -89,7 +90,7 @@ function Home() {
               height={1100}
               fetchPriority="high"
               decoding="async"
-              className="w-full rounded-[2rem] object-cover shadow-soft"
+              className="relative w-full rounded-[2rem] object-cover shadow-soft"
             />
             <Card className="absolute -bottom-6 left-4 w-56 rounded-2xl border-border/70 bg-card/95 p-4 shadow-card backdrop-blur">
               <p className="text-xs text-muted-foreground">Sinal para confirmar</p>
@@ -103,8 +104,8 @@ function Home() {
       <section className="mx-auto max-w-6xl px-4 py-10 sm:py-16">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-secondary">Modelos em destaque</p>
-            <h2 className="mt-2 font-display text-3xl">Escolhidos pelas clientes</h2>
+            <p className="font-script text-3xl leading-none text-secondary">favoritos</p>
+            <h2 className="mt-1 font-display text-3xl">Modelos em destaque</h2>
           </div>
           <Link to="/catalogo" className="flex items-center gap-1 text-sm text-primary hover:underline">
             Ver catálogo completo <ArrowRight className="size-4" />

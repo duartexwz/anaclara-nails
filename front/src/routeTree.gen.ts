@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AgendamentoRouteImport } from './routes/agendamento'
 import { Route as CatalogoRouteImport } from './routes/catalogo'
 import { Route as MensagensRouteImport } from './routes/mensagens'
+import { Route as MeusAgendamentosRouteImport } from './routes/meus-agendamentos'
 import { Route as MeusDadosRouteImport } from './routes/meus-dados'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -39,6 +40,11 @@ const CatalogoRoute = CatalogoRouteImport.update({
 const MensagensRoute = MensagensRouteImport.update({
   id: '/mensagens',
   path: '/mensagens',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeusAgendamentosRoute = MeusAgendamentosRouteImport.update({
+  id: '/meus-agendamentos',
+  path: '/meus-agendamentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeusDadosRoute = MeusDadosRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/agendamento': typeof AgendamentoRoute
   '/catalogo': typeof CatalogoRoute
   '/mensagens': typeof MensagensRoute
+  '/meus-agendamentos': typeof MeusAgendamentosRoute
   '/meus-dados': typeof MeusDadosRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/agendamentos': typeof AdminAgendamentosRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/agendamento': typeof AgendamentoRoute
   '/catalogo': typeof CatalogoRoute
   '/mensagens': typeof MensagensRoute
+  '/meus-agendamentos': typeof MeusAgendamentosRoute
   '/meus-dados': typeof MeusDadosRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/agendamentos': typeof AdminAgendamentosRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/agendamento': typeof AgendamentoRoute
   '/catalogo': typeof CatalogoRoute
   '/mensagens': typeof MensagensRoute
+  '/meus-agendamentos': typeof MeusAgendamentosRoute
   '/meus-dados': typeof MeusDadosRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
   '/admin/agendamentos': typeof AdminAgendamentosRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/catalogo'
     | '/mensagens'
+    | '/meus-agendamentos'
     | '/meus-dados'
     | '/redefinir-senha'
     | '/admin/agendamentos'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/catalogo'
     | '/mensagens'
+    | '/meus-agendamentos'
     | '/meus-dados'
     | '/redefinir-senha'
     | '/admin/agendamentos'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/agendamento'
     | '/catalogo'
     | '/mensagens'
+    | '/meus-agendamentos'
     | '/meus-dados'
     | '/redefinir-senha'
     | '/admin/agendamentos'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AgendamentoRoute: typeof AgendamentoRoute
   CatalogoRoute: typeof CatalogoRoute
   MensagensRoute: typeof MensagensRoute
+  MeusAgendamentosRoute: typeof MeusAgendamentosRoute
   MeusDadosRoute: typeof MeusDadosRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   AdminAgendamentosRoute: typeof AdminAgendamentosRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/mensagens'
       fullPath: '/mensagens'
       preLoaderRoute: typeof MensagensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meus-agendamentos': {
+      id: '/meus-agendamentos'
+      path: '/meus-agendamentos'
+      fullPath: '/meus-agendamentos'
+      preLoaderRoute: typeof MeusAgendamentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meus-dados': {
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgendamentoRoute: AgendamentoRoute,
   CatalogoRoute: CatalogoRoute,
   MensagensRoute: MensagensRoute,
+  MeusAgendamentosRoute: MeusAgendamentosRoute,
   MeusDadosRoute: MeusDadosRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
   AdminAgendamentosRoute: AdminAgendamentosRoute,

@@ -1,46 +1,48 @@
 import { Link } from "@tanstack/react-router";
-import { Instagram, MessageCircle, MapPin, Sparkles } from "lucide-react";
+import { Instagram, MessageCircle, MapPin, Heart } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export function Rodape() {
   const { usuario } = useAuth();
   return (
-    <footer className="mt-20 border-t border-border/70 bg-muted/40">
+    <footer className="mt-20 bg-primary text-primary-foreground">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-full gradient-primary text-primary-foreground">
-              <Sparkles className="size-3.5" />
-            </span>
-            <span className="font-display text-lg">Ana Clara Nails</span>
-          </div>
-          <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-            Nail design autoral em Brasília. Agendamento online com sinal de 50% para garantir seu horário.
+          <p className="font-script text-4xl">Ana Clara Nails</p>
+          <p className="mt-2 max-w-xs text-sm opacity-80">
+            Unhas feitas com carinho, do jeitinho que você sonhou.
           </p>
         </div>
-        <div className="text-sm">
-          <h3 className="font-display text-base">Navegação</h3>
-          <div className="mt-3 flex flex-col gap-2 text-muted-foreground">
-            <Link to="/catalogo" className="hover:text-primary">Catálogo</Link>
-            <Link to="/agendamento" className="hover:text-primary">Agendar horário</Link>
-            <Link to="/meus-dados" className="hover:text-primary">Meus dados</Link>
+        <div className="space-y-2 text-sm opacity-90">
+          <p className="flex items-center gap-2">
+            <MapPin className="size-4 shrink-0" />
+            <span>QE 44 Conjunto J Casa 07 - Guará II - DF</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <MessageCircle className="size-4 shrink-0" />
+            <span>(61) 98509-2748</span>
+          </p>
+          <p className="flex items-center gap-2">
+            <Instagram className="size-4 shrink-0" />
+            <span>@aclaranails._</span>
+          </p>
+        </div>
+        <div className="text-sm opacity-90">
+          <p className="font-medium">Horário</p>
+          <p className="mt-1">Ter a Sáb · 9h às 19h</p>
+          <p className="mt-4 flex items-center gap-1 opacity-70">
+            Feito com <Heart className="size-3 fill-current" /> para você
+          </p>
+          <div className="mt-3 flex flex-col gap-2">
+            <Link to="/catalogo" className="hover:underline">Catálogo</Link>
+            <Link to="/agendamento" className="hover:underline">Agendar horário</Link>
+            <Link to="/meus-dados" className="hover:underline">Meus dados</Link>
             {usuario?.perfil === "admin" && (
-              <Link to="/admin" className="hover:text-primary">Área da profissional</Link>
+              <Link to="/admin" className="hover:underline">Área da profissional</Link>
             )}
           </div>
         </div>
-        <div className="text-sm">
-          <h3 className="font-display text-base">Atendimento</h3>
-          <div className="mt-3 flex flex-col gap-2 text-muted-foreground">
-            <span className="flex items-center gap-2"><MapPin className="size-4" />QE 44 Conjunto J Casa 07 - Guará II - DF </span>
-            <span className="flex items-center gap-2"><MessageCircle className="size-4" /> (61) 98509-2748</span>
-            <span className="flex items-center gap-2"><Instagram className="size-4" /> @aclaranails._</span>
-          </div>
-        </div>
       </div>
-      {/* <div className="border-t border-border/70 px-4 py-4 text-center text-xs text-muted-foreground">
-        Protótipo de telas · Documento de Levantamento de Requisitos v1.0
-      </div> */}
     </footer>
   );
 }

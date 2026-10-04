@@ -177,6 +177,12 @@ export function ModalPagamento({
   };
 
   const concluir = (resultado: PagamentoApi) => {
+    console.log(
+      "[checkout] pagamento:",
+      resultado.status,
+      resultado.status_detail ?? "",
+      resultado.qr_code_base64 ? "com-QR" : "sem-QR",
+    );
     setPagamento(resultado);
     if (resultado.status === "approved" || resultado.status === "authorized") {
       setEtapa("aprovado");
@@ -190,6 +196,36 @@ export function ModalPagamento({
       setEtapa("erro");
     }
   };
+
+  // Na tela do QR, verifica sozinho algumas vezes: se o Pix aprovar,
+  // avança sem a cliente precisar tocar em nada.
+  useEffect(() => {
+    if (!open || etapa !== "aguardando-pix" || !pagamento) return;
+    let tentativas = 0;
+    let ativo = true;
+    const id = setInterval(async () => {
+      tentativas += 1;
+      if (tentativas > 6) {
+        clearInterval(id);
+        return;
+      }
+      try {
+        const atual = await consultarPagamentoApi(pagamento.id);
+        if (!ativo) return;
+        if (atual.status === "approved" || atual.status === "authorized") {
+          clearInterval(id);
+          concluir(atual);
+        }
+      } catch {
+        /* mantém aguardando; o botão manual continua valendo */
+      }
+    }, 8000);
+    return () => {
+      ativo = false;
+      clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, etapa, pagamento?.id]);
 
   const verificarPix = async () => {
     if (!pagamento) return;
@@ -253,7 +289,12 @@ export function ModalPagamento({
                 height={220}
                 className="mx-auto mt-4 size-52 rounded-2xl border border-border object-contain"
               />
-            ) : null}
+            ) : (
+              <p className="mx-auto mt-4 max-w-xs text-sm text-muted-foreground">
+                QR ainda não disponível — aguarde alguns segundos, estamos
+                verificando automaticamente.
+              </p>
+            )}
             {pagamento.qr_code ? (
               <button
                 type="button"
@@ -268,7 +309,7 @@ export function ModalPagamento({
               </button>
             ) : null}
             <Button
-              className="mt-5 w-full gradient-primary text-primary-foreground shadow-soft"
+              className="mt-5 w-full rounded-full gradient-primary text-primary-foreground shadow-soft"
               onClick={verificarPix}
             >
               Já paguei — verificar

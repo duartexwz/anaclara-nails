@@ -7,8 +7,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f4f1fd",
-  "theme_color": "#6959CD",
+  "background_color": "#F2F7FE",
+  "theme_color": "#2E7CC4",
   "dir": "ltr",
   "lang": "pt-BR",
   "categories": ["beauty", "lifestyle"],
@@ -26,7 +26,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192.jpg",
+      "src": "/icons/Ana Clara Nails - opcao 2 monograma AC(2).png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

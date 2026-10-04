@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
+import { PageTitle } from "@/components/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -207,13 +208,9 @@ function MeusDados() {
     <div className="min-h-screen">
       <Cabecalho />
 
-      <section className="gradient-soft">
-        <div className="mx-auto max-w-5xl px-4 py-10">
-          <p className="text-xs uppercase tracking-[0.3em] text-secondary">Minha conta</p>
-          <h1 className="mt-2 font-display text-3xl sm:text-4xl">Meus dados</h1>
-          <p className="mt-3 text-muted-foreground">Mantenha seus dados atualizados para receber avisos da Ana Clara.</p>
-        </div>
-      </section>
+      <PageTitle eyebrow="Minha conta" title="Meus dados">
+        Mantenha seus dados atualizados para receber avisos da Ana Clara.
+      </PageTitle>
 
       <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10 lg:grid-cols-[1.2fr_1fr]">
         <Card className="rounded-3xl border-border/70 p-6 shadow-card">
@@ -312,6 +309,32 @@ function MeusDados() {
         </Card>
 
         <div className="space-y-6">
+          <Card className="rounded-3xl border-border/70 bg-secondary/40 p-6 text-center shadow-card">
+            <span className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary font-display text-2xl text-primary-foreground">
+              {(usuario?.nome ?? "?").slice(0, 2).toUpperCase()}
+            </span>
+            <p className="mt-3 font-display text-2xl">{usuario?.nome}</p>
+            <p className="truncate text-sm text-muted-foreground">{usuario?.email}</p>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <div className="rounded-2xl bg-card p-3">
+                <p className="text-2xl font-semibold text-primary">{meusAgendamentos.length}</p>
+                <p className="text-muted-foreground">visitas</p>
+              </div>
+              <div className="rounded-2xl bg-card p-3">
+                {concluidos.length >= 5 ? (
+                  <>
+                    <p className="font-script text-3xl leading-none text-secondary">VIP</p>
+                    <p className="text-muted-foreground">cliente</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-2xl font-semibold text-primary">{concluidos.length}</p>
+                    <p className="text-muted-foreground">concluídos</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </Card>
           <Card className="rounded-3xl border-border/70 p-6 shadow-card">
             <h2 className="font-display text-2xl">Meus agendamentos</h2>
             <div className="mt-4 space-y-3">
@@ -343,7 +366,7 @@ function MeusDados() {
                           {st === "Aguardando sinal" && (
                             <Button
                               size="sm"
-                              className="flex-1 gradient-primary text-primary-foreground shadow-soft"
+                              className="flex-1 rounded-full gradient-primary text-primary-foreground shadow-soft"
                               onClick={() => setPagamentoAgId(a.id)}
                             >
                               <CreditCard className="mr-2 size-4" /> Pagar sinal {brl(a.sinal)}
@@ -413,7 +436,7 @@ function MeusDados() {
             </div>
           </div>
           <Button
-            className="w-full gradient-primary text-primary-foreground"
+            className="w-full rounded-full gradient-primary text-primary-foreground"
             disabled={senhaMutation.isPending}
             onClick={() => senhaMutation.mutate()}
           >
