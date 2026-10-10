@@ -533,14 +533,26 @@ function Agendamento() {
                     {slot ? ` · ${slot.dataCurta} às ${slot.hora}` : ""}. Conclua o pagamento
                     para confirmar o horário.
                   </p>
+                  <Button
+                    className="mt-4 w-full gradient-primary text-primary-foreground shadow-soft"
+                    onClick={() => setPagamentoAberto(true)}
+                  >
+                    Abrir pagamento do sinal
+                  </Button>
                 </div>
               ) : (
                 <Button
                   className="mt-6 w-full gradient-primary text-primary-foreground shadow-soft"
-                  onClick={() => setPagamentoAberto(true)}
-                  disabled={!slot}
+                  onClick={() => criarMutation.mutate()}
+                  disabled={!slot || criarMutation.isPending}
                 >
-                  Abrir pagamento do sinal
+                  {criarMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" /> Criando agendamento...
+                    </>
+                  ) : (
+                    "Criar agendamento e pagar o sinal"
+                  )}
                 </Button>
               )}
 

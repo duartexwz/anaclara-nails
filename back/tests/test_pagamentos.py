@@ -135,10 +135,58 @@ class TestCriarPagamento:
             AGENDAMENTO, {'id': 1}, {'status_pagamentos_id': 1}
         )
         resultado = await svc(sdk).criar_pagamento(
-            fake_db, brick(payment_method_id='bank_transfer')
+            fake_db,
+            brick(
+                payment_method_id='bank_transfer',
+                payer={
+                    'email': 'maria.eduarda@email.com',
+                    'identification': {
+                        'type': 'CPF',
+                        'number': '12345678909',
+                    },
+                },
+            ),
         )
         corpo = sdk.payment().created[0][0]
         assert corpo['payment_method_id'] == 'pix'
+        assert corpo['payer']['identification'] == {
+            'type': 'CPF',
+            'number': '12345678909',
+        }
+        assert resultado['status'] == 'pending'
+
+    async def test_bank_transfer_sem_cpf_422(self, fake_db):
+        fake_db.queue_fetchrow(AGENDAMENTO)
+        with pytest.raises(HTTPException) as exc:
+            await svc(FakeSdk()).criar_pagamento(
+                fake_db, brick(payment_method_id='bank_transfer')
+            )
+        assert exc.value.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+    async def test_pix_com_cpf_formatado_ok(self, fake_db):
+        sdk = FakeSdk(create_resp=resp_mp('pending'))
+        fake_db.queue_fetchrow(
+            AGENDAMENTO, {'id': 1}, {'status_pagamentos_id': 1}
+        )
+        resultado = await svc(sdk).criar_pagamento(
+            fake_db,
+            brick(
+                payment_method_id='pix',
+                payer={
+                    'email': 'maria.eduarda@email.com',
+                    'identification': {
+                        'type': 'cpf',
+                        'number': '123.456.789-09',
+                    },
+                },
+            ),
+        )
+        corpo = sdk.payment().created[0][0]
+        assert corpo['payment_method_id'] == 'pix'
+        assert corpo['payer']['identification'] == {
+            'type': 'CPF',
+            'number': '12345678909',
+        }
         assert resultado['status'] == 'pending'
 
     async def test_aprovado_atualiza_para_pago(self, fake_db):

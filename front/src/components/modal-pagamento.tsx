@@ -14,10 +14,25 @@ import {
   type PagamentoApi,
 } from "@/lib/api";
 import {
+  extrairFormDataBrick,
+  isPixBrick,
   mountPaymentBrick,
   resolvePublicKey,
   type BrickFormData,
+  type BrickSubmitArg,
 } from "@/lib/mercadopago";
+
+function somenteDigitos(texto: string): string {
+  return (texto || "").replace(/\D/g, "");
+}
+
+function mascararCpf(digitos: string): string {
+  const d = somenteDigitos(digitos).slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
+  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
+  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+}
 
 type Props = {
   open: boolean;
@@ -56,7 +71,11 @@ export function ModalPagamento({
   const [pagamento, setPagamento] = useState<PagamentoApi | null>(null);
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [erroMsg, setErroMsg] = useState("");
+  // CPF exigido pelo Mercado Pago para gerar QR Pix (POST /v1/payments).
+  const [cpf, setCpf] = useState("");
   const brickRef = useRef<{ unmount: () => Promise<void> | void } | null>(null);
+  const cpfRef = useRef("");
+  cpfRef.current = cpf;
   const sinal = valor / 2;
 
   // Decide o modo ao abrir: Checkout Bricks real via backend + Mercado Pago.
@@ -67,6 +86,7 @@ export function ModalPagamento({
     setEtapa("verificando");
     setPagamento(null);
     setErroMsg("");
+    setCpf("");
     setChavePublica(null);
     (async () => {
       if (agendamentoId == null) {
@@ -105,10 +125,14 @@ export function ModalPagamento({
     let cancelado = false;
     (async () => {
       try {
+        const digitosIniciais = somenteDigitos(cpfRef.current);
         const controller = await mountPaymentBrick({
           containerId: BRICK_CONTAINER_ID,
           amount: sinal,
           payerEmail: email,
+          ...(digitosIniciais.length === 11
+            ? { payerIdentification: { type: "CPF", number: digitosIniciais } }
+            : {}),
           publicKey: chavePublica,
           callbacks: {
             onSubmit: (formData) => enviarBrick(formData),
@@ -148,8 +172,28 @@ export function ModalPagamento({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, etapa, chavePublica]);
 
-  const enviarBrick = async (formData: BrickFormData) => {
+  const enviarBrick = async (arg: BrickFormData | BrickSubmitArg) => {
     if (agendamentoId == null) return;
+    const formData = extrairFormDataBrick(arg as BrickSubmitArg);
+    if (!formData || !formData.payment_method_id || !formData.payer) {
+      console.error("[checkout] onSubmit com formato inesperado:", arg);
+      setErroMsg("Não foi possível ler os dados do checkout. Tente novamente.");
+      setEtapa("erro");
+      return;
+    }
+    // Pix (Brick envia 'pix' ou 'bank_transfer') exige CPF no POST /v1/payments.
+    // O form do Brick nem sempre coleta: usa o CPF digitado abaixo como
+    // complemento antes de chamar o backend.
+    let identification = formData.payer.identification;
+    if (isPixBrick(formData) && !identification) {
+      const digitos = somenteDigitos(cpfRef.current);
+      if (digitos.length !== 11) {
+        setErroMsg("Informe o CPF (11 dígitos) para gerar o QR Pix.");
+        setEtapa("erro");
+        return;
+      }
+      identification = { type: "CPF", number: digitos };
+    }
     setEtapa("processando");
     try {
       const resultado = await criarPagamentoApi({
@@ -161,9 +205,7 @@ export function ModalPagamento({
         installments: formData.installments || 1,
         payer: {
           email: formData.payer.email || email,
-          ...(formData.payer.identification
-            ? { identification: formData.payer.identification }
-            : {}),
+          ...(identification ? { identification } : {}),
         },
         description: `Sinal ${modelo} — ${data} ${hora}`,
       });
@@ -183,7 +225,19 @@ export function ModalPagamento({
       resultado.status_detail ?? "",
       resultado.qr_code_base64 ? "com-QR" : "sem-QR",
     );
-    setPagamento(resultado);
+    // O polling (GET /pagamentos/{id}) pode voltar sem QR em respostas
+    // antigas: preserva o QR já exibido para não apagar a tela do Pix.
+    setPagamento((anterior) =>
+      !resultado.qr_code_base64 && !resultado.qr_code && anterior
+        ? {
+            ...resultado,
+            qr_code: resultado.qr_code ?? anterior.qr_code ?? null,
+            qr_code_base64:
+              resultado.qr_code_base64 ?? anterior.qr_code_base64 ?? null,
+            ticket_url: resultado.ticket_url ?? anterior.ticket_url ?? null,
+          }
+        : resultado,
+    );
     if (resultado.status === "approved" || resultado.status === "authorized") {
       setEtapa("aprovado");
     } else if (
@@ -366,7 +420,24 @@ export function ModalPagamento({
               </div>
             ) : (
               <div>
-                <div id={BRICK_CONTAINER_ID} className="min-h-64 w-full min-w-0 sm:min-h-80" />
+                <div>
+                  <label
+                    htmlFor="cpf-pix"
+                    className="mb-1.5 block text-xs font-medium text-muted-foreground"
+                  >
+                    CPF para Pix (obrigatório só se pagar com Pix)
+                  </label>
+                  <input
+                    id="cpf-pix"
+                    value={cpf}
+                    onChange={(e) => setCpf(mascararCpf(e.target.value))}
+                    placeholder="000.000.000-00"
+                    inputMode="numeric"
+                    maxLength={14}
+                    className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+                  />
+                </div>
+                <div id={BRICK_CONTAINER_ID} className="mt-3 min-h-64 w-full min-w-0 sm:min-h-80" />
                 <p className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
                   <ShieldCheck className="size-3.5 text-primary" /> Pagamento seguro via Mercado Pago
                 </p>

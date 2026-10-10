@@ -44,6 +44,10 @@ class PagamentoStatusResponse(BaseModel):
     status: str
     status_detail: str | None = None
     agendamento_id: int | None = None
+    status_pagamentos_id: int | None = None
+    qr_code: str | None = None
+    qr_code_base64: str | None = None
+    ticket_url: str | None = None
 
 
 class WebhookPayload(BaseModel):

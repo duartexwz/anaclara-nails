@@ -64,8 +64,18 @@ def validar_assinatura_webhook(
 
 def _normalizar_metodo(payment_method_id: str | None) -> str:
     ## BRICK INFORMA PIX COMO 'bank_transfer'; /v1/payments EXIGE 'pix'
-    metodo = (payment_method_id or '').lower()
-    return 'pix' if metodo == 'bank_transfer' else payment_method_id or ''
+    metodo = (payment_method_id or '').lower().strip()
+    if metodo in ('bank_transfer', 'pix'):
+        return 'pix'
+    return payment_method_id or ''
+
+
+def _normalizar_cpf(numero: str | None) -> str:
+    return ''.join(ch for ch in (numero or '') if ch.isdigit())
+
+
+def _eh_pix(payment_method_id: str | None) -> bool:
+    return _normalizar_metodo(payment_method_id) == 'pix'
 
 
 def _notification_url() -> str | None:
@@ -166,30 +176,37 @@ class PagamentosServices:
 
         # PIX EXIGE CPF DO PAGADOR NA API DO MP — SE O BRICK NÃO ENVIOU,
         # USA O CPF JÁ CADASTRADO NO CLIENTE (MEUS DADOS) COMO FALLBACK.
+        # O Brick envia Pix como 'bank_transfer' ou 'pix': normaliza antes
+        # de checar, senão o Pix caía no MP sem CPF e voltava 400 sem QR.
         payer = dados.payer.model_dump(exclude_unset=True)
-        if dados.payment_method_id == 'pix' and not payer.get(
-            'identification'
-        ):
+        eh_pix = _eh_pix(dados.payment_method_id)
+        if eh_pix and not payer.get('identification'):
             from api.repositories.clientes_repository import (
                 ClientesRepository,
             )
 
-            cliente = await ClientesRepository().buscar_por_id(
-                db, agendamento['cliente_id']
-            )
-            cpf_cliente = (cliente or {}).get('cpf')
-            if cpf_cliente:
+            cliente_id = agendamento.get('cliente_id')
+            cpf_cliente = ''
+            if cliente_id is not None:
+                cliente = await ClientesRepository().buscar_por_id(
+                    db, cliente_id
+                )
+                cpf_cliente = _normalizar_cpf((cliente or {}).get('cpf'))
+            if len(cpf_cliente) == 11:
                 payer['identification'] = {
                     'type': 'CPF',
                     'number': cpf_cliente,
                 }
-        if dados.payment_method_id == 'pix' and not payer.get(
-            'identification'
-        ):
-            raise HTTPException(
-                detail='CPF do pagador é obrigatório para Pix',
-                status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            )
+        if eh_pix:
+            identificacao = payer.get('identification') or {}
+            numero = _normalizar_cpf(identificacao.get('number'))
+            tipo = str(identificacao.get('type') or '').upper()
+            if tipo not in ('CPF', 'CNPJ') or len(numero) not in (11, 14):
+                raise HTTPException(
+                    detail='CPF do pagador é obrigatório para Pix',
+                    status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+                )
+            payer['identification'] = {'type': tipo, 'number': numero}
 
         corpo = {
             'transaction_amount': dados.transaction_amount,
@@ -275,12 +292,17 @@ class PagamentosServices:
                 db, int(agendamento_id), 'approved'
             )
 
+        poi = pagamento.get('point_of_interaction') or {}
+        tx_data = poi.get('transaction_data') or {}
         return {
             'id': pagamento['id'],
             'status': pagamento.get('status'),
             'status_detail': pagamento.get('status_detail'),
             'agendamento_id': agendamento_id,
             'status_pagamentos_id': status_id,
+            'qr_code': tx_data.get('qr_code'),
+            'qr_code_base64': tx_data.get('qr_code_base64'),
+            'ticket_url': tx_data.get('ticket_url'),
         }
 
     async def processar_webhook(
