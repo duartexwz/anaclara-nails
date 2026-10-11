@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { ApiError, enviarMensagemApi, listarMensagensApi } from "@/lib/api";
 import { inscreverPush, pushAtivoLocal, pushSuportado } from "@/lib/push";
-import { MessageCircle, Send, Loader2, BellRing } from "lucide-react";
+import { Send, Loader2, BellRing } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/mensagens")({
@@ -70,7 +69,13 @@ function Mensagens() {
     },
   });
 
-  const mensagens = [...(mensagensQuery.data ?? [])].sort((a, b) => b.id - a.id);
+  // Ordem cronológica (conversa): admin à esquerda, você à direita.
+  const mensagens = [...(mensagensQuery.data ?? [])].sort((a, b) => a.id - b.id);
+  const threadRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
+  }, [mensagens.length]);
 
   return (
     <div className="min-h-screen">
@@ -93,20 +98,32 @@ function Mensagens() {
             Nenhuma mensagem por enquanto.
           </Card>
         ) : (
-          mensagens.map((m) => (
-            <Card key={m.id} className="rounded-3xl border-border/70 p-6 shadow-card">
-              <div className="flex items-center justify-between gap-2">
-                <p className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                  <MessageCircle className="size-3.5 text-secondary" />
-                  {m.remetente === "admin" ? "Ana Clara" : "Você"}
-                </p>
-                <Badge variant="outline" className="border-border text-muted-foreground">
-                  #{m.id}
-                </Badge>
-              </div>
-              <p className="mt-3 text-sm">{m.texto}</p>
-            </Card>
-          ))
+          <div
+            ref={threadRef}
+            className="max-h-[32rem] space-y-3 overflow-y-auto rounded-3xl border border-border/70 bg-card p-4 shadow-card sm:p-6"
+          >
+            {mensagens.map((m) =>
+              m.remetente === "admin" ? (
+                <div key={m.id} className="mr-auto max-w-[85%]">
+                  <p className="mb-1 text-[0.7rem] font-medium uppercase tracking-wider text-secondary">
+                    Ana Clara
+                  </p>
+                  <div className="rounded-2xl rounded-tl-md bg-muted/70 p-3.5 text-sm">
+                    <p>{m.texto}</p>
+                  </div>
+                </div>
+              ) : (
+                <div key={m.id} className="ml-auto max-w-[85%]">
+                  <p className="mb-1 text-right text-[0.7rem] font-medium uppercase tracking-wider text-primary">
+                    Você
+                  </p>
+                  <div className="rounded-2xl rounded-tr-md gradient-primary p-3.5 text-sm text-primary-foreground shadow-soft">
+                    <p>{m.texto}</p>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
         )}
         <Card className="rounded-3xl border-border/70 p-6 shadow-card">
           <div className="space-y-1.5">

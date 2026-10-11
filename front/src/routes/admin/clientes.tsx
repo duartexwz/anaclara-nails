@@ -356,7 +356,7 @@ function ControleClientes() {
                   {semVinculo.map((m) => (
                     <div key={m.id} className="rounded-xl bg-muted/70 p-3 text-sm">
                       <p className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
-                        #{m.id} · {m.remetente}
+                        {m.remetente === "admin" ? "Ana Clara" : "Cliente"}
                       </p>
                       <p className="mt-1">{m.texto}</p>
                     </div>
