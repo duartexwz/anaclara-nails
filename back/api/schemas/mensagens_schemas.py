@@ -5,6 +5,9 @@ from pydantic import ConfigDict, BaseModel
 class MensagemBase(BaseModel):
     agendamento_id: int | None = None
     cliente_id: int | None = None
+    # Admin pode endereçar a sessão diretamente (conversas sem cliente).
+    # Envio como cliente sempre usa o usuário da sessão (ignora este campo).
+    usuario_id: int | None = None
     remetente: str = 'admin'
     texto: str
 

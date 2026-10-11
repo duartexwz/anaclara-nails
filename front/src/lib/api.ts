@@ -576,12 +576,31 @@ export async function enviarMensagemApi(dados: {
   texto: string;
   agendamento_id?: number | null;
   cliente_id?: number | null;
+  usuario_id?: number | null;
   remetente: string;
 }): Promise<MensagemApi> {
   return apiFetch<MensagemApi>("/api/v1/mensagens", {
     method: "POST",
     body: JSON.stringify(dados),
   });
+}
+
+export async function marcarMensagemLidaApi(id: number): Promise<void> {
+  await apiFetch(`/api/v1/mensagens/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ lida: true }),
+  });
+}
+
+export async function listarUsuariosApi(): Promise<UsuarioApi[]> {
+  try {
+    const data = await apiFetch<{ usuarios: UsuarioApi[] }>(
+      "/api/v1/usuarios",
+    );
+    return data.usuarios ?? [];
+  } catch {
+    return [];
+  }
 }
 
 /* -------------------------------- Status ----------------------------- */

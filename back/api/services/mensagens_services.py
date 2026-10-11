@@ -116,6 +116,10 @@ class MensagensServices:
             )
             usuario_id = (cliente or {}).get('email_id')
 
+        # Admin respondendo conversa sem cliente: usa a sessão informada.
+        if usuario_id is None:
+            usuario_id = mensagem.usuario_id
+
         dados = mensagem.model_dump()
         dados['cliente_id'] = cliente_id
         dados['usuario_id'] = usuario_id

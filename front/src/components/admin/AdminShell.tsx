@@ -13,6 +13,7 @@ import {
   Plus,
   Loader2,
   ShieldCheck,
+  MessageCircle,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
@@ -32,6 +33,7 @@ const nav = [
   { to: "/admin/agendamentos", label: "Agendamentos", icon: CalendarDays },
   { to: "/admin/catalogo", label: "Gestão de catálogo", icon: Images },
   { to: "/admin/clientes", label: "Controle de clientes", icon: Users },
+  { to: "/admin/mensagens", label: "Mensagens", icon: MessageCircle },
   { to: "/admin/horarios", label: "Dias e horários", icon: Clock },
 ] as const;
 

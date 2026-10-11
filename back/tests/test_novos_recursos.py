@@ -162,6 +162,23 @@ class TestMensagensServices:
         assert resultado['cliente_id'] == 9
         assert resultado['usuario_id'] == 2
 
+    async def test_admin_endereca_sessao_sem_cliente(
+        self, fake_db, admin_user
+    ):
+        # Resposta da tela "Mensagens por cliente" para conversa só com
+        # usuario_id: o dono explícito é preservado e chega à sessão.
+        fake_db.queue_fetchrow(
+            {'id': 20, 'cliente_id': None, 'usuario_id': 7, 'texto': 'Oi'},
+        )
+        resultado = await self.svc.create_mensagem(
+            fake_db,
+            MensagemBase(
+                usuario_id=7, remetente='admin', texto='Oi'
+            ),
+            admin_user,
+        )
+        assert resultado['usuario_id'] == 7
+
     async def test_get_sessao_ve_so_a_propria(self, fake_db, comum_user):
         # comum_user id=2: escopo por usuario_id (privado por sessão),
         # sem depender de cadastro em clientes.
