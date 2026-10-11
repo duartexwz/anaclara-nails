@@ -32,6 +32,35 @@ class MensagensServices:
         )
         return encontrados[0]['id'] if encontrados else None
 
+    async def _garantir_cliente_do_usuario(
+        self, db: Connection, current_user: UsuarioLogado
+    ) -> int | None:
+        # Garante conversa privada por sessão: se o login ainda não tem
+        # cadastro em clientes (ex.: nunca agendou), cria o vínculo mínimo.
+        # Sem isso a mensagem caía em "Sem vínculo" e a resposta da admin
+        # nunca chegava à conversa da cliente.
+        # Falha aqui nunca derruba o envio (usuario_id já identifica a sessão).
+        from api.repositories.clientes_repository import ClientesRepository
+        from api.schemas.clientes_schemas import ClienteFilter
+
+        try:
+            encontrados = await ClientesRepository().buscar(
+                db, ClienteFilter(email_id=current_user.id)
+            )
+            if encontrados:
+                return encontrados[0]['id']
+            novo = await ClientesRepository().criar(
+                db,
+                {
+                    'nome': current_user.nome,
+                    'telefone': None,
+                    'email_id': current_user.id,
+                },
+            )
+            return (novo or {}).get('id')
+        except Exception:
+            return None
+
     async def create_mensagem(
         self,
         db: Connection,
@@ -72,8 +101,8 @@ class MensagensServices:
         if cliente_id is None and agendamento is not None:
             cliente_id = agendamento.get('cliente_id')
         if cliente_id is None and mensagem.remetente == 'cliente':
-            cliente_id = await self._cliente_id_do_usuario(
-                db, current_user.id
+            cliente_id = await self._garantir_cliente_do_usuario(
+                db, current_user
             )
 
         # Dono da conversa: quem enviou (cliente) ou o destinatário

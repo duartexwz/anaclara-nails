@@ -51,6 +51,7 @@ class TestMensagensServices:
         self.svc = MensagensServices()
 
     async def test_create_ok(self, fake_db, comum_user):
+        fake_db.queue_fetch([{'id': 7, 'email_id': 2}])
         fake_db.queue_fetchrow({'id': 9, 'texto': 'Oi'})
         resultado = await self.svc.create_mensagem(
             fake_db,
@@ -105,6 +106,43 @@ class TestMensagensServices:
         ][0]
         assert 7 in params_criar
         assert 2 in params_criar
+
+    async def test_create_cria_cliente_no_primeiro_envio(
+        self, fake_db, comum_user
+    ):
+        # Sessão sem cadastro (ex.: Maria Eduarda): o 1º envio cria a
+        # cliente e já vincula — antes caía em "Sem vínculo".
+        fake_db.queue_fetch([])
+        fake_db.queue_fetchrow(
+            {'id': 11, 'email_id': 2},
+            {'id': 12, 'cliente_id': 11, 'usuario_id': 2, 'texto': 'Oi'},
+        )
+        resultado = await self.svc.create_mensagem(
+            fake_db,
+            MensagemBase(remetente='cliente', texto='Oi'),
+            comum_user,
+        )
+        assert resultado['cliente_id'] == 11
+        _, _, params_criar = [
+            c for c in fake_db.calls if c[0] == 'fetchrow'
+        ][1]
+        assert 11 in params_criar
+        assert 2 in params_criar
+
+    async def test_create_falha_criar_cliente_nao_derruba_envio(
+        self, fake_db, comum_user
+    ):
+        fake_db.queue_fetch([])
+        fake_db.queue_fetchrow(
+            None,
+            {'id': 13, 'cliente_id': None, 'usuario_id': 2, 'texto': 'Oi'},
+        )
+        resultado = await self.svc.create_mensagem(
+            fake_db,
+            MensagemBase(remetente='cliente', texto='Oi'),
+            comum_user,
+        )
+        assert resultado['id'] == 13
 
     async def test_create_herda_cliente_do_agendamento(
         self, fake_db, admin_user
@@ -244,6 +282,7 @@ class TestRotasNovas:
     async def test_post_mensagem_201(self, client, fake_db, as_user):
         from tests.conftest import CSRF_COOKIES, CSRF_HEADERS
 
+        fake_db.queue_fetch([{'id': 7, 'email_id': 2}])
         fake_db.queue_fetchrow(
             {
                 'id': 5,
