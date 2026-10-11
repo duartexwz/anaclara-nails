@@ -19,7 +19,9 @@ class UsuarioList(BaseModel):
     usuarios: list[UsuarioResponse]
 
 class UsuarioUpdate(BaseModel):
-    nome: str
+    # Todos opcionais: PATCH parcial (ex.: só {password} na troca de senha)
+    # deve passar na validação (antes, nome obrigatório causava 422).
+    nome: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
     type_user_id: Optional[int] = None

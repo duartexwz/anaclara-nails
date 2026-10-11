@@ -7,6 +7,8 @@ class MensagensRepository(QueryRepository):
     campos = {
         'id',
         'agendamento_id',
+        'cliente_id',
+        'usuario_id',
         'remetente',
         'texto',
         'lida'
@@ -15,5 +17,7 @@ class MensagensRepository(QueryRepository):
     mapa_filtros = {
         'id': Operador.IGUAL,
         'agendamento_id': Operador.IGUAL,
+        'cliente_id': Operador.IGUAL,
+        'usuario_id': Operador.IGUAL,
         'remetente': Operador.IGUAL
     }

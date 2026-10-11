@@ -556,21 +556,26 @@ export async function excluirBloqueioApi(id: number): Promise<void> {
 export type MensagemApi = {
   id: number;
   agendamento_id?: number | null;
+  cliente_id?: number | null;
+  usuario_id?: number | null;
   remetente: string;
   texto: string;
   lida: boolean;
 };
 
-export async function listarMensagensApi(): Promise<MensagemApi[]> {
-  const data = await apiFetch<{ mensagens: MensagemApi[] }>(
-    "/api/v1/mensagens?limit=50",
-  );
+export async function listarMensagensApi(clienteId?: number | null): Promise<MensagemApi[]> {
+  const qs =
+    clienteId != null
+      ? `/api/v1/mensagens?limit=50&cliente_id=${clienteId}`
+      : "/api/v1/mensagens?limit=50";
+  const data = await apiFetch<{ mensagens: MensagemApi[] }>(qs);
   return data.mensagens ?? [];
 }
 
 export async function enviarMensagemApi(dados: {
   texto: string;
   agendamento_id?: number | null;
+  cliente_id?: number | null;
   remetente: string;
 }): Promise<MensagemApi> {
   return apiFetch<MensagemApi>("/api/v1/mensagens", {

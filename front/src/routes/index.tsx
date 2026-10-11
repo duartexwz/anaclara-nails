@@ -39,7 +39,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [aberto, setAberto] = useState(false);
   const [modo, setModo] = useState<ModoAuth>("login");
-  const { entrar, cadastrar } = useAuth();
+  const { usuario, entrar, cadastrar } = useAuth();
   const modelosQuery = useQuery({
     queryKey: ["modelos"],
     queryFn: listarModelosApi,
@@ -186,38 +186,40 @@ function Home() {
         </Card>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-4">
-        <div className="rounded-[2rem] gradient-primary px-6 py-8 text-center text-primary-foreground shadow-soft sm:px-8 sm:py-12">
-          <h2 className="font-display text-3xl">Pronta para o próximo esmalte?</h2>
-          <p className="mx-auto mt-3 max-w-md text-primary-foreground/85">
-            Faça login, escolha o modelo e garanta seu horário em quatro etapas.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="bg-card text-primary hover:bg-card/90"
-              onClick={() => {
-                setModo("login");
-                setAberto(true);
-              }}
-            >
-              Entrar na minha conta
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-primary-foreground/50 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
-              onClick={() => {
-                setModo("cadastro");
-                setAberto(true);
-              }}
-            >
-              Criar conta
-            </Button>
+      {!usuario && (
+        <section className="mx-auto max-w-6xl px-4 pb-4">
+          <div className="rounded-[2rem] gradient-primary px-6 py-8 text-center text-primary-foreground shadow-soft sm:px-8 sm:py-12">
+            <h2 className="font-display text-3xl">Pronta para o próximo esmalte?</h2>
+            <p className="mx-auto mt-3 max-w-md text-primary-foreground/85">
+              Faça login, escolha o modelo e garanta seu horário em quatro etapas.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="bg-card text-primary hover:bg-card/90"
+                onClick={() => {
+                  setModo("login");
+                  setAberto(true);
+                }}
+              >
+                Entrar na minha conta
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-primary-foreground/50 bg-transparent text-primary-foreground hover:bg-primary-foreground/10"
+                onClick={() => {
+                  setModo("cadastro");
+                  setAberto(true);
+                }}
+              >
+                Criar conta
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Rodape />
       <AuthModais open={aberto} modo={modo} onOpenChange={setAberto} onModo={setModo} onEntrar={entrar} onCadastrar={cadastrar} />

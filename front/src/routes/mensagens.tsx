@@ -52,7 +52,7 @@ function Mensagens() {
 
   const mensagensQuery = useQuery({
     queryKey: ["mensagens"],
-    queryFn: listarMensagensApi,
+    queryFn: () => listarMensagensApi(),
     enabled: !!usuario,
     refetchInterval: 5000,
   });

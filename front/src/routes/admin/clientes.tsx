@@ -64,7 +64,7 @@ function ControleClientes() {
   const modelosQuery = useQuery({ queryKey: ["modelos"], queryFn: listarModelosApi });
   const mensagensQuery = useQuery({
     queryKey: ["mensagens"],
-    queryFn: listarMensagensApi,
+    queryFn: () => listarMensagensApi(),
     refetchInterval: 5000,
   });
 
@@ -96,10 +96,21 @@ function ControleClientes() {
       .reverse()
       .find((a) => a.data! >= hojeISO) ?? null;
 
+  // Conversa privada por cliente: usa cliente_id direto (novo) com
+  // fallback legado via agendamento (anteriores à migração 009).
   const conversa = (mensagensQuery.data ?? []).filter((m) => {
     if (!selecionada) return false;
+    if (m.cliente_id != null) return m.cliente_id === selecionada.id;
     const ag = (agendamentosQuery.data ?? []).find((a) => a.id === m.agendamento_id);
     return ag?.cliente_id === selecionada.id;
+  });
+
+  // Órfãs: sem cliente/agendamento vinculados (ex.: login sem cadastro).
+  // A admin vê tudo; cada sessão de cliente vê só a sua conversa.
+  const semVinculo = (mensagensQuery.data ?? []).filter((m) => {
+    if (m.cliente_id != null) return false;
+    const ag = (agendamentosQuery.data ?? []).find((a) => a.id === m.agendamento_id);
+    return !ag;
   });
 
   const salvarMoldeMutation = useMutation({
@@ -121,7 +132,12 @@ function ControleClientes() {
 
   const enviarMutation = useMutation({
     mutationFn: (texto: string) =>
-      enviarMensagemApi({ texto, remetente: "admin" }),
+      enviarMensagemApi({
+        texto,
+        remetente: "admin",
+        cliente_id: selecionada?.id ?? null,
+        agendamento_id: proximo?.id ?? null,
+      }),
     onSuccess: () => {
       setMensagem("");
       toast.success("Mensagem enviada");
@@ -327,6 +343,26 @@ function ControleClientes() {
                   <p className="mt-1">{m.texto}</p>
                 </div>
               ))
+            )}
+            {semVinculo.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-dashed border-border p-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Sem vínculo ({semVinculo.length})
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  De sessões sem cadastro — não entram na conversa de ninguém.
+                </p>
+                <div className="mt-2 space-y-2">
+                  {semVinculo.map((m) => (
+                    <div key={m.id} className="rounded-xl bg-muted/70 p-3 text-sm">
+                      <p className="text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                        #{m.id} · {m.remetente}
+                      </p>
+                      <p className="mt-1">{m.texto}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
           <div className="mt-4 space-y-2">

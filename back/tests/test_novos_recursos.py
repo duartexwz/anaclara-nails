@@ -82,6 +82,86 @@ class TestMensagensServices:
             )
         assert exc.value.status_code == HTTPStatus.BAD_REQUEST
 
+    async def test_create_vincula_cliente_do_usuario(
+        self, fake_db, comum_user
+    ):
+        # comum_user id=2 -> cliente id=7; mensagem sem agendamento deve
+        # sair com cliente_id=7 e usuario_id=2 (conversa privada/sessão).
+        fake_db.queue_fetch([{'id': 7, 'email_id': 2}])
+        fake_db.queue_fetchrow(
+            {'id': 9, 'cliente_id': 7, 'usuario_id': 2, 'texto': 'Oi'}
+        )
+        resultado = await self.svc.create_mensagem(
+            fake_db,
+            MensagemBase(remetente='cliente', texto='Oi'),
+            comum_user,
+        )
+        assert resultado['cliente_id'] == 7
+        assert resultado['usuario_id'] == 2
+        # O INSERT levou cliente_id e usuario_id ([0]: a busca de
+        # cliente usa fetch; o 1º fetchrow é o INSERT da mensagem)
+        _, _, params_criar = [
+            c for c in fake_db.calls if c[0] == 'fetchrow'
+        ][0]
+        assert 7 in params_criar
+        assert 2 in params_criar
+
+    async def test_create_herda_cliente_do_agendamento(
+        self, fake_db, admin_user
+    ):
+        fake_db.queue_fetchrow(
+            {'id': 3, 'cliente_id': 9},
+            {'id': 9, 'email_id': 2},
+            {'id': 10, 'cliente_id': 9, 'usuario_id': 2, 'texto': 'Oi'},
+        )
+        resultado = await self.svc.create_mensagem(
+            fake_db,
+            MensagemBase(
+                agendamento_id=3, remetente='admin', texto='Oi'
+            ),
+            admin_user,
+        )
+        assert resultado['cliente_id'] == 9
+        assert resultado['usuario_id'] == 2
+
+    async def test_get_sessao_ve_so_a_propria(self, fake_db, comum_user):
+        # comum_user id=2: escopo por usuario_id (privado por sessão),
+        # sem depender de cadastro em clientes.
+        from api.schemas.mensagens_schemas import MensagemFilter
+
+        fake_db.queue_fetch(
+            [{'id': 1, 'usuario_id': 2, 'texto': 'a'}]
+        )
+        resultado = await self.svc.get_mensagens(
+            fake_db, MensagemFilter(), comum_user
+        )
+        assert resultado == [{'id': 1, 'usuario_id': 2, 'texto': 'a'}]
+        # O SQL filtrou por usuario_id da sessão
+        assert 'usuario_id' in fake_db.calls[-1][1]
+
+    async def test_get_sem_cadastro_ve_as_proprias(
+        self, fake_db, comum_user
+    ):
+        # Sem registro em clientes, o usuário ainda vê o que ele enviou.
+        from api.schemas.mensagens_schemas import MensagemFilter
+
+        fake_db.queue_fetch([{'id': 5, 'usuario_id': 2, 'texto': 'oi'}])
+        resultado = await self.svc.get_mensagens(
+            fake_db, MensagemFilter(), comum_user
+        )
+        assert resultado == [{'id': 5, 'usuario_id': 2, 'texto': 'oi'}]
+
+    async def test_get_admin_ve_tudo(self, fake_db, admin_user):
+        from api.schemas.mensagens_schemas import MensagemFilter
+
+        fake_db.queue_fetch(
+            [{'id': 1, 'cliente_id': 7}, {'id': 2, 'cliente_id': 8}]
+        )
+        resultado = await self.svc.get_mensagens(
+            fake_db, MensagemFilter(), admin_user
+        )
+        assert len(resultado) == 2
+
 
 class TestBloqueiosServices:
     def setup_method(self):

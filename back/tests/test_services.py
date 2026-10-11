@@ -113,12 +113,21 @@ class TestUsuarioServices:
         assert exc.value.status_code == HTTPStatus.CONFLICT
 
     async def test_update_sem_campos_400(self, fake_db, admin_user):
-        ## SCHEMA EXIGE NOME: PAYLOAD VAZIO É REJEITADO NA BORDA (422)
-        from pydantic import ValidationError
-
+        ## PATCH PARCIAL: SCHEMA ACEITA VAZIO E O SERVIÇO DEVOLVE 400
         fake_db.queue_fetchrow({'id': 1})
-        with pytest.raises(ValidationError):
-            UsuarioUpdate()
+        with pytest.raises(HTTPException) as exc:
+            await self.svc.update_usuarios(
+                fake_db, 1, UsuarioUpdate(), admin_user
+            )
+        assert exc.value.status_code == HTTPStatus.BAD_REQUEST
+
+    async def test_update_so_senha_ok(self, fake_db, admin_user):
+        ## TROCA DE SENHA (MEUS DADOS) ENVIA SÓ {password}: ERA 422
+        fake_db.queue_fetchrow({'id': 2}, {'id': 2})
+        resultado = await self.svc.update_usuarios(
+            fake_db, 2, UsuarioUpdate(password='nova-senha-123'), admin_user
+        )
+        assert resultado == {'id': 2}
 
     async def test_update_ok(self, fake_db, admin_user):
         fake_db.queue_fetchrow({'id': 1}, None, {'id': 1})
