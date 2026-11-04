@@ -78,10 +78,19 @@ async def create_subscription(
         db, PushSubscriptionFilter(endpoint=subscription.endpoint)
     )
     if existente:
-        return existente[0]
+        # Mesmo aparelho, outra sessão: transfere o dono (push por usuário).
+        atual = existente[0]
+        if atual.get('usuario_id') != current_user.id:
+            atualizado = await push_repository.atualizar(
+                db, atual['id'], {'usuario_id': current_user.id}
+            )
+            return atualizado or {**atual, 'usuario_id': current_user.id}
+        return atual
 
+    dados = subscription.model_dump()
+    dados['usuario_id'] = current_user.id
     resultado = await push_repository.criar(
-        db, subscription.model_dump()
+        db, dados
     )
 
     if resultado is None:

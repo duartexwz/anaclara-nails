@@ -19,6 +19,7 @@ import {
   marcarMensagemLidaApi,
   type MensagemApi,
 } from "@/lib/api";
+import { mascararTelefone } from "@/lib/masks";
 import { ArrowLeft, Loader2, MessageCircle, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,6 +57,16 @@ const iniciais = (nome: string) =>
     .join("")
     .toUpperCase() || "?";
 
+function nomeDoEmail(email?: string | null): string {
+  if (!email) return "";
+  const prefixo = email.split("@")[0] ?? "";
+  return prefixo
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(" ");
+}
+
 function MensagensAdmin() {
   const queryClient = useQueryClient();
   const [busca, setBusca] = useState("");
@@ -65,7 +76,7 @@ function MensagensAdmin() {
   const threadRef = useRef<HTMLDivElement>(null);
 
   const mensagensQuery = useQuery({
-    queryKey: ["mensagens"],
+    queryKey: ["admin", "mensagens"],
     queryFn: () => listarMensagensApi(),
     refetchInterval: 5000,
   });
@@ -78,58 +89,132 @@ function MensagensAdmin() {
     queryFn: () => listarUsuariosApi(),
   });
 
-  const nomeCliente = (id: number | null) =>
-    (clientesQuery.data ?? []).find((c) => c.id === id)?.nome ?? null;
-  const nomeUsuario = (id: number | null) =>
-    (usuariosQuery.data ?? []).find((u) => u.id === id)?.nome ?? null;
-
   const conversas = useMemo<Conversa[]>(() => {
+    const clientes = clientesQuery.data ?? [];
+    const usuarios = usuariosQuery.data ?? [];
+    const mensagens = mensagensQuery.data ?? [];
+
+    // Mapas de correlação bidirecional cliente <-> usuario
+    const mapClienteParaUsuario = new Map<number, number>();
+    const mapUsuarioParaCliente = new Map<number, number>();
+
+    for (const c of clientes) {
+      if (c.id != null && c.email_id != null) {
+        mapClienteParaUsuario.set(c.id, c.email_id);
+        mapUsuarioParaCliente.set(c.email_id, c.id);
+      }
+    }
+
+    for (const m of mensagens) {
+      if (m.cliente_id != null && m.usuario_id != null) {
+        mapClienteParaUsuario.set(m.cliente_id, m.usuario_id);
+        mapUsuarioParaCliente.set(m.usuario_id, m.cliente_id);
+      }
+    }
+
     const mapa = new Map<string, MensagemApi[]>();
-    for (const m of mensagensQuery.data ?? []) {
+
+    for (const m of mensagens) {
+      const resolvedClienteId =
+        m.cliente_id ??
+        (m.usuario_id != null ? mapUsuarioParaCliente.get(m.usuario_id) : null) ??
+        null;
+      const resolvedUsuarioId =
+        m.usuario_id ??
+        (resolvedClienteId != null ? mapClienteParaUsuario.get(resolvedClienteId) : null) ??
+        null;
+
       const chave =
-        m.cliente_id != null
-          ? `c:${m.cliente_id}`
-          : m.usuario_id != null
-            ? `u:${m.usuario_id}`
+        resolvedClienteId != null
+          ? `c:${resolvedClienteId}`
+          : resolvedUsuarioId != null
+            ? `u:${resolvedUsuarioId}`
             : `m:${m.id}`;
+
       const lista = mapa.get(chave) ?? [];
       lista.push(m);
       mapa.set(chave, lista);
     }
+
     const lista: Conversa[] = [];
     for (const [chave, itens] of mapa) {
       const ordenadas = [...itens].sort((a, b) => a.id - b.id);
-      const primeira = ordenadas[0]!;
-      const clienteId = primeira.cliente_id ?? null;
-      const usuarioId = primeira.usuario_id ?? null;
-      const nome =
-        (clienteId != null ? nomeCliente(clienteId) : null) ??
-        (usuarioId != null ? nomeUsuario(usuarioId) : null) ??
-        "Sem vínculo";
+
+      let clienteId: number | null = null;
+      let usuarioId: number | null = null;
+      let nomeEncontrado: string | null = null;
+      let emailEncontrado: string | null = null;
+
+      for (const item of ordenadas) {
+        if (item.cliente_id != null && clienteId == null) clienteId = item.cliente_id;
+        if (item.usuario_id != null && usuarioId == null) usuarioId = item.usuario_id;
+        if (item.cliente_nome?.trim() && !nomeEncontrado) nomeEncontrado = item.cliente_nome.trim();
+        if (item.usuario_nome?.trim() && !nomeEncontrado) nomeEncontrado = item.usuario_nome.trim();
+        if (item.usuario_email?.trim() && !emailEncontrado) emailEncontrado = item.usuario_email.trim();
+      }
+
+      if (clienteId == null && usuarioId != null) {
+        clienteId = mapUsuarioParaCliente.get(usuarioId) ?? null;
+      }
+      if (usuarioId == null && clienteId != null) {
+        usuarioId = mapClienteParaUsuario.get(clienteId) ?? null;
+      }
+
+      const clienteObj = clienteId != null ? clientes.find((c) => c.id === clienteId) : null;
+      const usuarioObj = usuarioId != null ? usuarios.find((u) => u.id === usuarioId) : null;
+
+      if (!nomeEncontrado && clienteObj?.nome?.trim()) {
+        nomeEncontrado = clienteObj.nome.trim();
+      }
+      if (!nomeEncontrado && usuarioObj?.nome?.trim()) {
+        nomeEncontrado = usuarioObj.nome.trim();
+      }
+      if (!emailEncontrado && usuarioObj?.email?.trim()) {
+        emailEncontrado = usuarioObj.email.trim();
+      }
+      if (!nomeEncontrado && emailEncontrado) {
+        nomeEncontrado = nomeDoEmail(emailEncontrado);
+      }
+
+      const nomeFinal =
+        nomeEncontrado ||
+        (clienteId != null
+          ? `Cliente #${clienteId}`
+          : usuarioId != null
+            ? `Usuário #${usuarioId}`
+            : "Cliente");
+
+      const telefone = clienteObj?.telefone ? mascararTelefone(clienteObj.telefone) : null;
+      const partesDetalhe: string[] = [];
+      if (emailEncontrado) partesDetalhe.push(emailEncontrado);
+      if (telefone) partesDetalhe.push(telefone);
+      const detalheFinal =
+        partesDetalhe.length > 0
+          ? partesDetalhe.join(" · ")
+          : clienteId != null
+            ? `Cliente #${clienteId}`
+            : "Sessão web";
+
       lista.push({
         chave,
         clienteId,
         usuarioId,
-        nome,
-        detalhe:
-          clienteId != null
-            ? `Cliente #${clienteId}`
-            : usuarioId != null
-              ? "Sessão sem cadastro"
-              : "Sem sessão vinculada",
+        nome: nomeFinal,
+        detalhe: detalheFinal,
         itens: ordenadas,
         ultima: ordenadas[ordenadas.length - 1]!,
-        naoLidas: ordenadas.filter((m) => !m.lida && m.remetente !== "admin")
-          .length,
+        naoLidas: ordenadas.filter((m) => !m.lida && m.remetente !== "admin").length,
       });
     }
+
     return lista.sort((a, b) => b.ultima.id - a.ultima.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mensagensQuery.data, clientesQuery.data, usuariosQuery.data]);
 
   const filtradas = conversas.filter(
     (c) =>
-      busca === "" || c.nome.toLowerCase().includes(busca.toLowerCase()),
+      busca === "" ||
+      c.nome.toLowerCase().includes(busca.toLowerCase()) ||
+      c.detalhe.toLowerCase().includes(busca.toLowerCase()),
   );
 
   const sel = conversas.find((c) => c.chave === chaveSel) ?? null;
@@ -144,7 +229,7 @@ function MensagensAdmin() {
     for (const m of pendentes) marcadasRef.current.add(m.id);
     void (async () => {
       await Promise.allSettled(pendentes.map((m) => marcarMensagemLidaApi(m.id)));
-      void queryClient.invalidateQueries({ queryKey: ["mensagens"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "mensagens"] });
     })();
   }, [sel?.chave, mensagensQuery.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -165,7 +250,7 @@ function MensagensAdmin() {
     },
     onSuccess: () => {
       setTexto("");
-      void queryClient.invalidateQueries({ queryKey: ["mensagens"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "mensagens"] });
     },
     onError: (e) => {
       toast.error(e instanceof ApiError ? e.message : "Não foi possível enviar.");

@@ -110,10 +110,13 @@ function Agendamento() {
   }, [statusQuery.data]);
 
   useEffect(() => {
-    if (modelos.length > 0 && (modeloId == null || !modelos.some((m) => m.id === modeloId))) {
-      setModeloId(modelos[0]!.id);
+    if (modeloInicial && /^\d+$/.test(modeloInicial)) {
+      const id = Number(modeloInicial);
+      if (modelos.some((m) => m.id === id)) {
+        setModeloId(id);
+      }
     }
-  }, [modelos, modeloId]);
+  }, [modelos, modeloInicial]);
 
   const modelo = modelos.find((m) => m.id === modeloId) ?? null;
 
@@ -254,9 +257,15 @@ function Agendamento() {
   });
 
   const proxima = () => {
-    if (etapa === 2 && !slot) {
-      toast.error("Selecione um horário disponível");
-      return;
+    if (etapa === 2) {
+      if (!modelo) {
+        toast.error("Selecione um modelo do catálogo para continuar");
+        return;
+      }
+      if (!slot) {
+        toast.error("Selecione um horário disponível para continuar");
+        return;
+      }
     }
     if (etapa === 3) {
       criarMutation.mutate();
@@ -398,7 +407,7 @@ function Agendamento() {
                       onValueChange={(v) => setModeloId(Number(v))}
                     >
                       <SelectTrigger className="h-11 rounded-xl">
-                        <SelectValue placeholder="Escolha um modelo" />
+                        <SelectValue placeholder="Selecione um modelo do catálogo" />
                       </SelectTrigger>
                       <SelectContent>
                         {modelos.map((m) => (
@@ -644,9 +653,12 @@ function Agendamento() {
                 <Item claro rotulo="Sinal (50%)" valor={brl(modelo.preco / 2)} destaque />
               </>
             ) : (
-              <p className="mt-4 text-sm text-primary-foreground/70">
-                Escolha um modelo para ver o resumo.
-              </p>
+              <div className="mt-4 rounded-2xl bg-primary-foreground/10 p-4 text-sm text-primary-foreground/80">
+                <p className="font-medium text-primary-foreground">Nenhum modelo selecionado</p>
+                <p className="mt-1 text-xs text-primary-foreground/70">
+                  Escolha um modelo do catálogo na etapa 2 para visualizar o resumo do seu agendamento aqui.
+                </p>
+              </div>
             )}
           </Card>
         </aside>

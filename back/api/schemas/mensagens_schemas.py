@@ -15,6 +15,9 @@ class MensagemResponse(MensagemBase):
     id: int
     lida: bool
     usuario_id: int | None = None
+    cliente_nome: str | None = None
+    usuario_nome: str | None = None
+    usuario_email: str | None = None
     model_config = ConfigDict(from_attributes=True)
 
 class MensagemList(BaseModel):
@@ -29,4 +32,4 @@ class MensagemFilter(BaseModel):
     usuario_id: int | None = None
     remetente: str | None = None
     offset: int | None = 0
-    limit: int | None = 50
+    limit: int | None = 200

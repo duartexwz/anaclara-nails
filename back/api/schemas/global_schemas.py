@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class UsuarioLogado(BaseModel):
     id: int
-    nome: str
+    nome: str | None = None
     email: str
     type_user_id: int
     is_admin: bool

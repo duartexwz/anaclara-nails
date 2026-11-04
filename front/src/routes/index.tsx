@@ -39,7 +39,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [aberto, setAberto] = useState(false);
   const [modo, setModo] = useState<ModoAuth>("login");
-  const { usuario, entrar, cadastrar } = useAuth();
+  const { usuario, carregandoSessao, entrar, cadastrar } = useAuth();
   const modelosQuery = useQuery({
     queryKey: ["modelos"],
     queryFn: listarModelosApi,
@@ -186,7 +186,7 @@ function Home() {
         </Card>
       </section>
 
-      {!usuario && (
+      {!carregandoSessao && !usuario && (
         <section className="mx-auto max-w-6xl px-4 pb-4">
           <div className="rounded-[2rem] gradient-primary px-6 py-8 text-center text-primary-foreground shadow-soft sm:px-8 sm:py-12">
             <h2 className="font-display text-3xl">Pronta para o próximo esmalte?</h2>

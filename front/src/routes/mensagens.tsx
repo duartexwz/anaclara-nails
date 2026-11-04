@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Cabecalho } from "@/components/cabecalho";
 import { Rodape } from "@/components/rodape";
@@ -9,9 +9,10 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
-import { ApiError, enviarMensagemApi, listarMensagensApi } from "@/lib/api";
+import { AuthModais, type ModoAuth } from "@/components/auth-modais";
+import { ApiError, enviarMensagemApi, listarClientesApi, listarMensagensApi } from "@/lib/api";
 import { inscreverPush, pushAtivoLocal, pushSuportado } from "@/lib/push";
-import { Send, Loader2, BellRing } from "lucide-react";
+import { Send, Loader2, BellRing, LogIn } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/mensagens")({
@@ -29,10 +30,12 @@ export const Route = createFileRoute("/mensagens")({
 });
 
 function Mensagens() {
-  const { usuario } = useAuth();
+  const { usuario, carregandoSessao, entrar, cadastrar } = useAuth();
   const queryClient = useQueryClient();
   const [resposta, setResposta] = useState("");
   const [pushPedido, setPushPedido] = useState(false);
+  const [authAberto, setAuthAberto] = useState(false);
+  const [modoAuth, setModoAuth] = useState<ModoAuth>("login");
 
   // Oferece o push no aparelho uma única vez (respostas da Ana Clara chegam na hora)
   useEffect(() => {
@@ -49,33 +52,119 @@ function Mensagens() {
     else if (resultado !== "indisponivel") toast.error("Não foi possível ativar agora");
   };
 
+  const clientesQuery = useQuery({
+    queryKey: ["clientes"],
+    queryFn: () => listarClientesApi(),
+    enabled: !!usuario,
+  });
+
+  const meuClienteId = useMemo(() => {
+    if (!usuario) return null;
+    return (clientesQuery.data ?? []).find((c) => c.email_id === usuario.id)?.id ?? null;
+  }, [clientesQuery.data, usuario]);
+
   const mensagensQuery = useQuery({
-    queryKey: ["mensagens"],
-    queryFn: () => listarMensagensApi(),
+    queryKey: ["mensagens", "cliente", usuario?.id],
+    queryFn: () => listarMensagensApi(meuClienteId),
     enabled: !!usuario,
     refetchInterval: 5000,
   });
 
   const enviarMutation = useMutation({
     mutationFn: (texto: string) =>
-      enviarMensagemApi({ texto, remetente: "cliente" }),
+      enviarMensagemApi({
+        texto,
+        remetente: "cliente",
+        usuario_id: usuario?.id,
+        cliente_id: meuClienteId,
+      }),
     onSuccess: () => {
       setResposta("");
       toast.success("Mensagem enviada");
-      void queryClient.invalidateQueries({ queryKey: ["mensagens"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["mensagens", "cliente", usuario?.id],
+      });
     },
     onError: (e) => {
       toast.error(e instanceof ApiError ? e.message : "Não foi possível enviar.");
     },
   });
 
-  // Ordem cronológica (conversa): admin à esquerda, você à direita.
-  const mensagens = [...(mensagensQuery.data ?? [])].sort((a, b) => a.id - b.id);
+  // Filtro defensivo: apenas mensagens pertencentes à conversa deste usuário/cliente
+  const mensagens = useMemo(() => {
+    if (!usuario) return [];
+    return [...(mensagensQuery.data ?? [])]
+      .filter((m) => {
+        if (m.usuario_id != null && m.usuario_id !== usuario.id) return false;
+        if (
+          m.cliente_id != null &&
+          meuClienteId != null &&
+          m.cliente_id !== meuClienteId &&
+          m.usuario_id !== usuario.id
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => a.id - b.id);
+  }, [mensagensQuery.data, usuario, meuClienteId]);
+
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
   }, [mensagens.length]);
+
+  // Conversa privada: só com sessão ativa (sem login não há o que exibir).
+  if (!carregandoSessao && !usuario) {
+    return (
+      <div className="min-h-screen">
+        <Cabecalho />
+        <PageTitle eyebrow="Comunicação" title="Mensagens">
+          Entre na sua conta para ver sua conversa privada com a Ana Clara.
+        </PageTitle>
+        <section className="mx-auto max-w-md px-4 pb-16">
+          <Card className="rounded-3xl border-border/70 p-6 text-center shadow-card sm:p-8">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-soft">
+              <LogIn className="size-6" />
+            </span>
+            <h2 className="mt-4 font-display text-2xl">Entre para continuar</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Cada conta tem sua conversa privada — sem login não há mensagens
+              para exibir.
+            </p>
+            <Button
+              className="mt-6 w-full gradient-primary text-primary-foreground shadow-soft"
+              onClick={() => {
+                setModoAuth("login");
+                setAuthAberto(true);
+              }}
+            >
+              <LogIn className="mr-2 size-4" /> Entrar na minha conta
+            </Button>
+            <button
+              className="mt-3 w-full text-sm text-muted-foreground hover:text-primary"
+              onClick={() => {
+                setModoAuth("cadastro");
+                setAuthAberto(true);
+              }}
+            >
+              Ainda não tenho conta — <span className="font-medium text-primary">criar conta</span>
+            </button>
+          </Card>
+        </section>
+        <Rodape />
+        <AuthModais
+          open={authAberto}
+          modo={modoAuth}
+          onOpenChange={setAuthAberto}
+          onModo={setModoAuth}
+          onEntrar={entrar}
+          onCadastrar={cadastrar}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -126,15 +215,20 @@ function Mensagens() {
           </div>
         )}
         <Card className="rounded-3xl border-border/70 p-6 shadow-card">
-          <div className="space-y-1.5">
             <Textarea
               value={resposta}
               onChange={(e) => setResposta(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!resposta.trim() || enviarMutation.isPending) return;
+                  enviarMutation.mutate(resposta.trim());
+                }
+              }}
               rows={2}
-              placeholder="Escrever para Ana Clara..."
+              placeholder="Escrever para Ana Clara... (pressione Enter para enviar)"
               className="rounded-xl"
             />
-          </div>
           {pushPedido && (
             <button
               onClick={ativarPush}

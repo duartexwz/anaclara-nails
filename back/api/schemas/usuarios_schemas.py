@@ -10,7 +10,7 @@ class UsuarioBase(BaseModel):
 
 class UsuarioResponse(BaseModel):
     id: int
-    nome: str
+    nome: Optional[str] = None
     email: EmailStr
     type_user_id: Optional[int] = None
     model_config = ConfigDict(from_attributes=True)
@@ -31,4 +31,4 @@ class UsuarioFilter(BaseModel):
     email: Optional[str] = None
     type_user_id: Optional[int] = None
     offset: int | None = 0
-    limit: int | None = 10
+    limit: int | None = 200

@@ -109,9 +109,15 @@ class SqlQueryBuilder:
 
     def build_insert(self, dados: dict[str, Any]) -> tuple[str, list[Any]]:
 
-        # Monta a query INSERT dinâmica com base nas chaves do dict
+        # Monta a query INSERT dinâmica com base nas chaves do dict.
+        # Filtra apenas colunas declaradas em self.campos para evitar
+        # injeção de campos desconhecidos ou FK violations.
 
-        if not dados:
+        dados_filtrados = {
+            k: v for k, v in dados.items() if k in self.campos
+        }
+
+        if not dados_filtrados:
             raise HTTPException(
                 detail='Nenhum campo para inserir',
                 status_code=HTTPStatus.BAD_REQUEST
@@ -120,7 +126,7 @@ class SqlQueryBuilder:
         colunas = []
         placeholders = []
 
-        for campo, valor in dados.items():
+        for campo, valor in dados_filtrados.items():
             params_index = self.__add_param(valor)
             colunas.append(campo)
             placeholders.append(f'${params_index}')

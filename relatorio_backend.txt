@@ -117,7 +117,7 @@ CORS back/api/app.py:93-99 allow_methods sem PUT, allow_headers so Content-Type,
   if (refreshOk) truthy mesmo 401 -> sempre return apiFetch loop infinito potencial.
 
 [5.8] back/api/settings.py:31-32 | LOGIN/SEGURANCA
-  SMPT_USER / SMTP_PASSORD typo -> smtp_configurado() sempre falso, e-mail nunca envia.
+   SMTP_USER / SMTP_PASSORD typo -> smtp_configurado() sempre falso, e-mail nunca envia.
 
 [5.9] back/api/services/token_services.py:144-152 vs back/api/repositories/password_resets_repository.py | TOKEN/TABELA
   criar com usado_em None correto, mas lifespan pode nao garantir tabela password_resets se migration 005 falhar -> reset falha.

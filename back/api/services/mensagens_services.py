@@ -49,10 +49,14 @@ class MensagensServices:
             )
             if encontrados:
                 return encontrados[0]['id']
+            nome = current_user.nome
+            if not nome or not nome.strip():
+                prefixo = (current_user.email or 'cliente').split('@')[0]
+                nome = ' '.join(p.capitalize() for p in prefixo.replace('.', ' ').replace('_', ' ').replace('-', ' ').split()) or 'Cliente'
             novo = await ClientesRepository().criar(
                 db,
                 {
-                    'nome': current_user.nome,
+                    'nome': nome,
                     'telefone': None,
                     'email_id': current_user.id,
                 },
@@ -124,6 +128,11 @@ class MensagensServices:
         dados['cliente_id'] = cliente_id
         dados['usuario_id'] = usuario_id
 
+        # Filtra apenas os campos conhecidos pelo repositório (evita colunas
+        # inexistentes ou FKs inválidas vindas do schema Pydantic).
+        campos_validos = self.mensagens_repository.campos
+        dados = {k: v for k, v in dados.items() if k in campos_validos}
+
         resultado = await self.mensagens_repository.criar(
             db, dados
         )
@@ -149,6 +158,19 @@ class MensagensServices:
         await disparar_notificacao_admin(
             db, 'mensagem', titulo, previa, mensagem.agendamento_id
         )
+
+        # RESPOSTA NO APARELHO DA CLIENTE (só a sessão destinatária;
+        # o push da admin nunca vaza para outras sessões).
+        if mensagem.remetente == 'admin' and usuario_id is not None:
+            from contextlib import suppress
+
+            from api.services.push_service import enviar_push_usuario
+
+            with suppress(Exception):
+                await enviar_push_usuario(
+                    db, usuario_id, titulo, previa,
+                    mensagem.agendamento_id,
+                )
 
         return resultado
 

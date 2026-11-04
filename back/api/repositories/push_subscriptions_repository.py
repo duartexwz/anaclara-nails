@@ -8,10 +8,12 @@ class PushSubscriptionsRepository(QueryRepository):
         'id',
         'endpoint',
         'p256dh',
-        'auth'
+        'auth',
+        'usuario_id'
     }
 
     mapa_filtros = {
         'id': Operador.IGUAL,
-        'endpoint': Operador.IGUAL
+        'endpoint': Operador.IGUAL,
+        'usuario_id': Operador.IGUAL
     }

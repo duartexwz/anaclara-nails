@@ -100,6 +100,65 @@ class TestPushService:
         assert resultado == {'enviados': 0, 'removidos': 0}
         assert fake_db.calls == []
 
+    async def test_admins_somente_aparelhos_de_admin(
+        self, fake_db, monkeypatch
+    ):
+        from api.services import push_service as mod
+
+        # 2 inscrições (admin user 1 e cliente user 2) + admin user 1.
+        fake_db.queue_fetch([
+            {'id': 1, 'endpoint': 'e1', 'p256dh': 'p', 'auth': 'a',
+             'usuario_id': 1},
+            {'id': 2, 'endpoint': 'e2', 'p256dh': 'p', 'auth': 'a',
+             'usuario_id': 2},
+        ])
+        fake_db.queue_fetch([{'id': 1}])
+        enviados = []
+        monkeypatch.setattr(
+            mod, '_enviar_para_inscricao',
+            lambda sub, t, c, a: enviados.append(sub['endpoint']) or 'ok',
+        )
+        resultado = await mod.enviar_push_admins(fake_db, 'T', 'C', None)
+        assert resultado == {'enviados': 1, 'removidos': 0}
+        # A cliente NÃO recebe o push da admin (era o vazamento).
+        assert enviados == ['e1']
+
+    async def test_push_usuario_so_para_a_sessao(
+        self, fake_db, monkeypatch
+    ):
+        from api.services import push_service as mod
+
+        fake_db.queue_fetch([
+            {'id': 9, 'endpoint': 'e9', 'p256dh': 'p', 'auth': 'a',
+             'usuario_id': 7},
+        ])
+        enviados = []
+        monkeypatch.setattr(
+            mod, '_enviar_para_inscricao',
+            lambda sub, t, c, a: enviados.append(sub['endpoint']) or 'ok',
+        )
+        resultado = await mod.enviar_push_usuario(fake_db, 7, 'T', 'C', None)
+        assert resultado == {'enviados': 1, 'removidos': 0}
+        assert enviados == ['e9']
+
+    async def test_inscricao_sem_dono_nao_recebe(self, fake_db, monkeypatch):
+        from api.services import push_service as mod
+
+        # Legadas (usuario_id NULL): ninguém recebe até reinscrever.
+        fake_db.queue_fetch([
+            {'id': 3, 'endpoint': 'e3', 'p256dh': 'p', 'auth': 'a',
+             'usuario_id': None},
+        ])
+        fake_db.queue_fetch([{'id': 1}])
+        enviados = []
+        monkeypatch.setattr(
+            mod, '_enviar_para_inscricao',
+            lambda sub, t, c, a: enviados.append(sub['endpoint']) or 'ok',
+        )
+        resultado = await mod.enviar_push_admins(fake_db, 'T', 'C', None)
+        assert resultado == {'enviados': 0, 'removidos': 0}
+        assert enviados == []
+
 
 class TestRotasNotificacoes:
     async def test_get_401_anonimo(self, client, as_anon, fake_db):
@@ -157,6 +216,51 @@ class TestRotasPush:
             headers=CSRF_HEADERS, cookies=CSRF_COOKIES,
         )
         assert resposta.status_code == 503
+
+    async def test_post_grava_dono_da_sessao(
+        self, client, fake_db, as_user
+    ):
+        from tests.conftest import CSRF_COOKIES, CSRF_HEADERS
+
+        fake_db.queue_fetch([])
+        fake_db.queue_fetchrow(
+            {'id': 8, 'endpoint': 'https://push.teste/y', 'p256dh': 'p',
+             'auth': 'a', 'usuario_id': 2}
+        )
+        resposta = await client.post(
+            '/api/v1/push/subscriptions',
+            json={
+                'endpoint': 'https://push.teste/y',
+                'p256dh': 'p', 'auth': 'a',
+            },
+            headers=CSRF_HEADERS, cookies=CSRF_COOKIES,
+        )
+        assert resposta.status_code == 201
+        assert resposta.json()['usuario_id'] == 2
+
+    async def test_post_endpoint_existente_troca_dono(
+        self, client, fake_db, as_user
+    ):
+        from tests.conftest import CSRF_COOKIES, CSRF_HEADERS
+
+        fake_db.queue_fetch([
+            {'id': 5, 'endpoint': 'https://push.teste/y', 'p256dh': 'p',
+             'auth': 'a', 'usuario_id': 1}
+        ])
+        fake_db.queue_fetchrow(
+            {'id': 5, 'endpoint': 'https://push.teste/y', 'p256dh': 'p',
+             'auth': 'a', 'usuario_id': 2}
+        )
+        resposta = await client.post(
+            '/api/v1/push/subscriptions',
+            json={
+                'endpoint': 'https://push.teste/y',
+                'p256dh': 'p', 'auth': 'a',
+            },
+            headers=CSRF_HEADERS, cookies=CSRF_COOKIES,
+        )
+        assert resposta.status_code == 201
+        assert resposta.json()['usuario_id'] == 2
 
     async def test_delete_sem_endpoint_400(
         self, client, fake_db, as_admin

@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../lib/auth";
 import { PwaUpdater } from "../lib/pwa";
 import { Toaster } from "@/components/ui/sonner";
+import { AutoReloader } from "@/components/auto-reloader";
 
 function NotFoundComponent() {
   return (
@@ -143,6 +144,7 @@ function RootComponent() {
         </Suspense>
         <Toaster position="top-center" richColors />
         <PwaUpdater />
+        <AutoReloader />
       </AuthProvider>
     </QueryClientProvider>
   );

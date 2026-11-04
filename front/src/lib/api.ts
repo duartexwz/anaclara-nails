@@ -56,9 +56,9 @@ const REFRESH_KEY = "ana-clara-refresh";
 const REFRESH_PATH = "/api/v1/login/auth/refresh";
 
 function lerSessao(nome: string): string | null {
-  if (typeof sessionStorage === "undefined") return null;
+  if (typeof window === "undefined") return null;
   try {
-    return sessionStorage.getItem(nome);
+    return localStorage.getItem(nome) ?? sessionStorage.getItem(nome);
   } catch {
     return null;
   }
@@ -66,6 +66,8 @@ function lerSessao(nome: string): string | null {
 
 export function guardarSessao(access: string, refresh: string): void {
   try {
+    localStorage.setItem(ACCESS_KEY, access);
+    localStorage.setItem(REFRESH_KEY, refresh);
     sessionStorage.setItem(ACCESS_KEY, access);
     sessionStorage.setItem(REFRESH_KEY, refresh);
   } catch {
@@ -75,6 +77,10 @@ export function guardarSessao(access: string, refresh: string): void {
 
 export function limparSessao(): void {
   try {
+    localStorage.removeItem(ACCESS_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+    localStorage.removeItem("ana-clara-user");
+    localStorage.removeItem("ana-clara-cache-cliente");
     sessionStorage.removeItem(ACCESS_KEY);
     sessionStorage.removeItem(REFRESH_KEY);
   } catch {
@@ -300,10 +306,33 @@ export type ModeloApi = {
 };
 
 export async function listarModelosApi(): Promise<ModeloApi[]> {
-  const data = await apiFetch<{ modelos_unhas: ModeloApi[] }>(
-    "/api/v1/modelos-unhas",
-  );
-  return data.modelos_unhas ?? [];
+  try {
+    const data = await apiFetch<{ modelos_unhas: ModeloApi[] }>(
+      "/api/v1/modelos-unhas",
+    );
+    const lista = data.modelos_unhas ?? [];
+    if (typeof window !== "undefined" && lista.length > 0) {
+      try {
+        localStorage.setItem("ana-clara-cache-modelos", JSON.stringify({ data: lista, time: Date.now() }));
+      } catch {
+        /* ignore */
+      }
+    }
+    return lista;
+  } catch (err) {
+    if (typeof window !== "undefined") {
+      try {
+        const salvo = localStorage.getItem("ana-clara-cache-modelos");
+        if (salvo) {
+          const parsed = JSON.parse(salvo);
+          if (Array.isArray(parsed?.data)) return parsed.data;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    throw err;
+  }
 }
 
 export async function criarModeloApi(dados: {
@@ -561,13 +590,16 @@ export type MensagemApi = {
   remetente: string;
   texto: string;
   lida: boolean;
+  cliente_nome?: string | null;
+  usuario_nome?: string | null;
+  usuario_email?: string | null;
 };
 
 export async function listarMensagensApi(clienteId?: number | null): Promise<MensagemApi[]> {
   const qs =
     clienteId != null
-      ? `/api/v1/mensagens?limit=50&cliente_id=${clienteId}`
-      : "/api/v1/mensagens?limit=50";
+      ? `/api/v1/mensagens?limit=200&cliente_id=${clienteId}`
+      : "/api/v1/mensagens?limit=200";
   const data = await apiFetch<{ mensagens: MensagemApi[] }>(qs);
   return data.mensagens ?? [];
 }
@@ -595,7 +627,7 @@ export async function marcarMensagemLidaApi(id: number): Promise<void> {
 export async function listarUsuariosApi(): Promise<UsuarioApi[]> {
   try {
     const data = await apiFetch<{ usuarios: UsuarioApi[] }>(
-      "/api/v1/usuarios",
+      "/api/v1/usuarios?limit=200",
     );
     return data.usuarios ?? [];
   } catch {

@@ -1,7 +1,8 @@
 /**
- * Web Push no dispositivo logado da admin.
+ * Web Push no dispositivo logado (admin e cliente).
  * Registra o service worker, pede permissão, assina com a chave VAPID
- * do backend e salva a inscrição via API.
+ * do backend e salva a inscrição via API (dono = usuário da sessão:
+ * pushes da admin vão só para admins; respostas vão só à sessão destino).
  */
 import { getVapidKeyApi, salvarPushSubscriptionApi } from "./api";
 

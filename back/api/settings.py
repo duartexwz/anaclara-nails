@@ -28,13 +28,13 @@ class Settings(BaseSettings):
     # Pagamento
     MERCADO_PAGO_ACCESS_TOKEN: str
     MERCADO_PAGO_PUBLIC_KEY: str
-    MERCADO_PAGO_WEBHOOK_ACESS_TOKEN: str = ''
+    MERCADO_PAGO_WEBHOOK_ACESS_TOKEN: str 
 
     # Email
-    SMPT_USER: str = ''
-    SMTP_PASSORD: str = ''
+    SMTP_USER: str = 'analoud14@gmail.com'
+    SMTP_PASSORD: str = 'xiju gmxn yerw angp'
     SMTP_HOST: str = 'smtp.gmail.com'
-    SMTP_FROM: str = 'noreply@anaclaranails.com'
+    SMTP_FROM: str = 'analoud14@gmail.com'
     SMTP_PORT: int = 587
     SMTP_USE_TLS: bool = True
     SMTP_USE_SSL: bool = True

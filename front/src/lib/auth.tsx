@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { loginApi, logoutApi, meApi, registerApi } from "./api";
-import { NonBinary } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { limparSessao, loginApi, logoutApi, meApi, registerApi } from "./api";
+import { STORAGE_KEYS, obterItem, salvarItem, removerItem } from "./local-storage";
 
 /**
- * Sessão real via API (RF01/RF02/RF18).
+ * Sessão com persistência local em localStorage (RF01/RF02/RF18).
  * Papéis: "cliente" (fluxo normal) e "admin" (administrador cadastrado na tabela administradores).
- * A aba "Painel" do cabeçalho só aparece quando há sessão de admin.
+ * A sessão é restaurada instantaneamente do localStorage para evitar piscadas (FOUC).
  */
 
 export type Perfil = "cliente" | "admin";
@@ -39,7 +40,13 @@ function nomeDoEmail(email: string): string {
   return nome || "Cliente";
 }
 
-function mapearUsuario(api: { id: number; nome: string; email: string; type_user_id: number; is_admin: boolean }): Usuario {
+function mapearUsuario(api: {
+  id: number;
+  nome?: string | null;
+  email: string;
+  type_user_id?: number | null;
+  is_admin: boolean;
+}): Usuario {
   return {
     id: api.id,
     email: api.email,
@@ -50,17 +57,30 @@ function mapearUsuario(api: { id: number; nome: string; email: string; type_user
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [carregandoSessao, setCarregandoSessao] = useState(true);
+  // Inicialização imediata do localStorage para eliminar qualquer atraso perceptível
+  const [usuario, setUsuario] = useState<Usuario | null>(() => {
+    return obterItem<Usuario>(STORAGE_KEYS.USER);
+  });
+  const [carregandoSessao, setCarregandoSessao] = useState(() => {
+    return !obterItem<Usuario>(STORAGE_KEYS.USER);
+  });
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     let ativo = true;
     meApi()
       .then((u) => {
-        if (ativo) setUsuario(mapearUsuario(u));
+        if (ativo) {
+          const userMapeado = mapearUsuario(u);
+          setUsuario(userMapeado);
+          salvarItem(STORAGE_KEYS.USER, userMapeado);
+        }
       })
       .catch(() => {
-        if (ativo) setUsuario(null);
+        if (ativo) {
+          setUsuario(null);
+          removerItem(STORAGE_KEYS.USER);
+        }
       })
       .finally(() => {
         if (ativo) setCarregandoSessao(false);
@@ -72,24 +92,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const entrar = async (email: string, senha: string) => {
     const u = await loginApi(email, senha);
-    setUsuario(mapearUsuario(u));
+    const userMapeado = mapearUsuario(u);
+    setUsuario(userMapeado);
+    salvarItem(STORAGE_KEYS.USER, userMapeado);
   };
 
   const cadastrar = async (nome: string, email: string, senha: string) => {
     await registerApi({ nome: nome, email: email, password: senha });
     const u = await loginApi(email, senha);
     const base = mapearUsuario(u);
-    setUsuario(nome.trim() ? { ...base, nome: nome.trim() } : base);
+    const finalUser = nome.trim() ? { ...base, nome: nome.trim() } : base;
+    setUsuario(finalUser);
+    salvarItem(STORAGE_KEYS.USER, finalUser);
   };
 
   const sair = () => {
     setUsuario(null);
+    removerItem(STORAGE_KEYS.USER);
+    limparSessao();
+    queryClient.clear();
     void logoutApi();
   };
 
   return (
     <Ctx.Provider
-      value={{ usuario, carregandoSessao, entrar, cadastrar, sair, ehAdmin: usuario?.is_admin ?? false }}
+      value={{
+        usuario,
+        carregandoSessao,
+        entrar,
+        cadastrar,
+        sair,
+        ehAdmin: usuario?.is_admin ?? false,
+      }}
     >
       {children}
     </Ctx.Provider>

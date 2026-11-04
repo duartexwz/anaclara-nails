@@ -37,7 +37,8 @@ import {
   statusEstilo,
   statusExibicao,
 } from "@/lib/dados";
-import { CalendarDays, Clock, CreditCard, CalendarX2 } from "lucide-react";
+import { AuthModais, type ModoAuth } from "@/components/auth-modais";
+import { CalendarDays, Clock, CreditCard, CalendarX2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/meus-agendamentos")({
@@ -59,8 +60,10 @@ export const Route = createFileRoute("/meus-agendamentos")({
 });
 
 function MeusAgendamentos() {
-  const { usuario } = useAuth();
+  const { usuario, carregandoSessao, entrar, cadastrar } = useAuth();
   const queryClient = useQueryClient();
+  const [authAberto, setAuthAberto] = useState(false);
+  const [modoAuth, setModoAuth] = useState<ModoAuth>("login");
   const [pagamentoAgId, setPagamentoAgId] = useState<number | null>(null);
 
   const clientesQuery = useQuery({
@@ -107,6 +110,55 @@ function MeusAgendamentos() {
   });
 
   const agPagar = meus.find((a) => a.id === pagamentoAgId) ?? null;
+
+  if (!carregandoSessao && !usuario) {
+    return (
+      <div className="min-h-screen">
+        <Cabecalho />
+        <PageTitle eyebrow="Minha agenda" title="Meus agendamentos">
+          Entre na sua conta para acompanhar seus horários marcados e histórico.
+        </PageTitle>
+        <section className="mx-auto max-w-md px-4 pb-16">
+          <Card className="rounded-3xl border-border/70 p-6 text-center shadow-card sm:p-8">
+            <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-soft">
+              <LogIn className="size-6" />
+            </span>
+            <h2 className="mt-4 font-display text-2xl">Entre para ver seus horários</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Acesse sua conta para visualizar seus agendamentos, realizar pagamentos de sinal ou gerenciar horários.
+            </p>
+            <Button
+              className="mt-6 w-full gradient-primary text-primary-foreground shadow-soft"
+              onClick={() => {
+                setModoAuth("login");
+                setAuthAberto(true);
+              }}
+            >
+              <LogIn className="mr-2 size-4" /> Entrar na minha conta
+            </Button>
+            <button
+              className="mt-3 w-full text-sm text-muted-foreground hover:text-primary"
+              onClick={() => {
+                setModoAuth("cadastro");
+                setAuthAberto(true);
+              }}
+            >
+              Ainda não tenho conta — <span className="font-medium text-primary">criar conta</span>
+            </button>
+          </Card>
+        </section>
+        <Rodape />
+        <AuthModais
+          open={authAberto}
+          modo={modoAuth}
+          onOpenChange={setAuthAberto}
+          onModo={setModoAuth}
+          onEntrar={entrar}
+          onCadastrar={cadastrar}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

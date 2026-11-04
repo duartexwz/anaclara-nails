@@ -10,6 +10,7 @@ class PushSubscriptionBase(BaseModel):
 
 class PushSubscriptionResponse(PushSubscriptionBase):
     id: int
+    usuario_id: int | None = None
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -19,6 +20,7 @@ class PushSubscriptionList(BaseModel):
 
 class PushSubscriptionFilter(BaseModel):
     endpoint: str | None = None
+    usuario_id: int | None = None
     offset: int | None = 0
     limit: int | None = 500
 

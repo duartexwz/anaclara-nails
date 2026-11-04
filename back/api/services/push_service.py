@@ -49,19 +49,25 @@ def _enviar_para_inscricao(subscription: dict, titulo: str, corpo: str,
         return 'falha'
 
 
-async def enviar_push_admins(
+async def _ids_admin(db: Connection) -> set:
+    from api.repositories.usuarios_repository import UsuarioRepository
+    from api.schemas.enums import TypeUserEnum
+    from api.schemas.usuarios_schemas import UsuarioFilter
+
+    admins = await UsuarioRepository().buscar(
+        db, UsuarioFilter(type_user_id=TypeUserEnum.ADMIN.value, limit=500)
+    )
+    return {u['id'] for u in admins}
+
+
+async def _disparar(
     db: Connection,
+    inscricoes: list,
     titulo: str,
     corpo: str,
-    agendamento_id: int | None = None,
+    agendamento_id: int | None,
 ) -> dict:
-    ## DISPARA PUSH A TODOS OS DISPOSITIVOS LOGADOS; REMOVE INSCRITOS MORTOS
-    if not push_configurado():
-        return {'enviados': 0, 'removidos': 0}
-
     repo = PushSubscriptionsRepository()
-    inscricoes = await repo.buscar(db, PushSubscriptionFilter())
-
     enviados = 0
     removidos = 0
     for sub in inscricoes:
@@ -73,5 +79,42 @@ async def enviar_push_admins(
         elif resultado == 'remover':
             await repo.deletar(db, sub['id'])
             removidos += 1
-
     return {'enviados': enviados, 'removidos': removidos}
+
+
+async def enviar_push_admins(
+    db: Connection,
+    titulo: str,
+    corpo: str,
+    agendamento_id: int | None = None,
+) -> dict:
+    ## SÓ AOS APARELHOS DE ADMIN: antes ia a TODOS os inscritos, e a
+    ## cliente recebia no próprio aparelho o push "Nova mensagem de
+    ## cliente" ao enviar mensagem. Inscrições legadas sem dono recebem nada.
+    if not push_configurado():
+        return {'enviados': 0, 'removidos': 0}
+
+    repo = PushSubscriptionsRepository()
+    inscricoes = await repo.buscar(db, PushSubscriptionFilter())
+    admins = await _ids_admin(db)
+    alvos = [s for s in inscricoes if s.get('usuario_id') in admins]
+    return await _disparar(db, alvos, titulo, corpo, agendamento_id)
+
+
+async def enviar_push_usuario(
+    db: Connection,
+    usuario_id: int,
+    titulo: str,
+    corpo: str,
+    agendamento_id: int | None = None,
+) -> dict:
+    ## RESPOSTA DA ADMIN: só aos aparelhos da sessão do cliente (é o que
+    ## faz o "Receber respostas neste aparelho" funcionar de verdade).
+    if not push_configurado():
+        return {'enviados': 0, 'removidos': 0}
+
+    repo = PushSubscriptionsRepository()
+    inscricoes = await repo.buscar(
+        db, PushSubscriptionFilter(usuario_id=usuario_id)
+    )
+    return await _disparar(db, inscricoes, titulo, corpo, agendamento_id)

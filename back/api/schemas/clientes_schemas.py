@@ -5,8 +5,8 @@ from datetime import date
 
 class ClienteBase(BaseModel):
     nome: str
-    telefone: str
-    email_id: int
+    telefone: str | None = None
+    email_id: int | None = None
     molde: str | None = None
     cpf: str | None = None
     data_nascimento: date | None = None
@@ -38,4 +38,4 @@ class ClienteFilter(BaseModel):
     telefone: str | None = None
     email_id: int | None = None
     offset: int | None = 0
-    limit: int | None = 10
+    limit: int | None = 200
