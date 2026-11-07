@@ -51,12 +51,12 @@ export function Cabecalho() {
           <span className="font-display text-[1.7rem] leading-none">Ana Clara</span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-sm md:flex">
+        <nav className="hidden items-center gap-3 text-sm lg:gap-6 md:flex">
           {navegacao.map((item) => (
             <Link
               key={item.para}
               to={item.para}
-              className="text-muted-foreground transition-colors hover:text-primary"
+              className="text-muted-foreground whitespace-nowrap transition-colors hover:text-primary text-xs lg:text-sm"
               activeProps={{ className: "text-primary font-medium" }}
               activeOptions={{ exact: item.para === "/" }}
             >
@@ -65,7 +65,7 @@ export function Cabecalho() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 shrink-0 md:flex">
           {/* Aba Painel: visível somente após login E só para administradora (RF18) */}
           {usuario?.perfil === "admin" && (
             <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>

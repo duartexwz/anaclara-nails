@@ -46,7 +46,30 @@ class NailDesignsServices:
                 status_code=HTTPStatus.CONFLICT
             )
 
-        dados = nail_design.model_dump()
+        if nail_design.eh_admin:
+            if not nail_design.email or not nail_design.password:
+                raise HTTPException(
+                    detail='Para criar como administradora, email e senha são obrigatórios',
+                    status_code=HTTPStatus.BAD_REQUEST
+                )
+            if len(nail_design.password) < 8:
+                raise HTTPException(
+                    detail='A senha do administrador deve ter no mínimo 8 caracteres',
+                    status_code=HTTPStatus.BAD_REQUEST
+                )
+            from api.repositories.administradores_repository import AdministradoresRepository
+            admin_repo = AdministradoresRepository()
+            if await admin_repo.existe(db, 'email', str(nail_design.email)):
+                raise HTTPException(
+                    detail='O email já pertence a um administrador',
+                    status_code=HTTPStatus.CONFLICT
+                )
+
+        dados = {
+            'nome': nail_design.nome,
+            'cpf': nail_design.cpf,
+            'telefone': nail_design.telefone,
+        }
 
         resultado = await self.nail_designs_repository.criar(
             db, dados
@@ -56,6 +79,21 @@ class NailDesignsServices:
             raise HTTPException(
                 detail='Erro ao cadastrar a profissional',
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR
+            )
+
+        if nail_design.eh_admin:
+            from api.repositories.administradores_repository import AdministradoresRepository
+            from api.security import get_password_hash
+            admin_repo = AdministradoresRepository()
+            await admin_repo.criar(
+                db,
+                {
+                    'nome': nail_design.nome,
+                    'email': str(nail_design.email),
+                    'password': get_password_hash(nail_design.password),
+                    'type_user_id': TypeUserEnum.ADMIN.value,
+                    'nail_design_id': resultado['id'],
+                }
             )
 
         return resultado

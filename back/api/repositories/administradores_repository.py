@@ -9,6 +9,7 @@ class AdministradoresRepository(QueryRepository):
         'email',
         'password',
         'type_user_id',
+        'nail_design_id',
     }
 
     mapa_filtros = {

@@ -75,7 +75,7 @@ function Mensagens() {
       enviarMensagemApi({
         texto,
         remetente: "cliente",
-        usuario_id: usuario?.id,
+        usuario_id: usuario?.id ?? null,
         cliente_id: meuClienteId,
       }),
     onSuccess: () => {

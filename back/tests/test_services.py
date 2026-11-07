@@ -486,6 +486,84 @@ class TestNailDesignsServices:
             )
         assert exc.value.status_code == HTTPStatus.NOT_FOUND
 
+    async def test_create_nail_design_sucesso_sem_admin(self, fake_db, admin_user):
+        fake_db.queue_fetchrow(None, {'id': 10, 'nome': 'Carla', 'cpf': '123', 'telefone': '456'})
+        resultado = await self.svc.create_nail_design(
+            fake_db,
+            NailDesignBase(nome='Carla', cpf='123', telefone='456', eh_admin=False),
+            admin_user,
+        )
+        assert resultado['id'] == 10
+        assert resultado['nome'] == 'Carla'
+
+    async def test_create_nail_design_sucesso_com_admin(self, fake_db, admin_user):
+        fake_db.queue_fetchrow(
+            None,  # cpf existe check -> None
+            None,  # email existe check no admin_repo -> None
+            {'id': 15, 'nome': 'Paula', 'cpf': '789', 'telefone': '111'},  # nail_design criado
+            {'id': 2, 'nome': 'Paula', 'email': 'paula@exemplo.com', 'nail_design_id': 15}  # admin criado
+        )
+        resultado = await self.svc.create_nail_design(
+            fake_db,
+            NailDesignBase(
+                nome='Paula',
+                cpf='789',
+                telefone='111',
+                eh_admin=True,
+                email='paula@exemplo.com',
+                password='senha_segura_123'
+            ),
+            admin_user,
+        )
+        assert resultado['id'] == 15
+
+    async def test_create_nail_design_admin_sem_credenciais_400(self, fake_db, admin_user):
+        fake_db.queue_fetchrow(None)  # cpf não existe
+        with pytest.raises(HTTPException) as exc:
+            await self.svc.create_nail_design(
+                fake_db,
+                NailDesignBase(nome='Paula', cpf='789', telefone='111', eh_admin=True),
+                admin_user,
+            )
+        assert exc.value.status_code == HTTPStatus.BAD_REQUEST
+
+    async def test_create_nail_design_admin_senha_curta_400(self, fake_db, admin_user):
+        fake_db.queue_fetchrow(None)  # cpf não existe
+        with pytest.raises(HTTPException) as exc:
+            await self.svc.create_nail_design(
+                fake_db,
+                NailDesignBase(
+                    nome='Paula',
+                    cpf='789',
+                    telefone='111',
+                    eh_admin=True,
+                    email='paula@exemplo.com',
+                    password='curta'
+                ),
+                admin_user,
+            )
+        assert exc.value.status_code == HTTPStatus.BAD_REQUEST
+
+    async def test_create_nail_design_admin_email_duplicado_409(self, fake_db, admin_user):
+        fake_db.queue_fetchrow(
+            None,  # cpf não existe
+            {'id': 1}  # admin email existe
+        )
+        with pytest.raises(HTTPException) as exc:
+            await self.svc.create_nail_design(
+                fake_db,
+                NailDesignBase(
+                    nome='Paula',
+                    cpf='789',
+                    telefone='111',
+                    eh_admin=True,
+                    email='paula@exemplo.com',
+                    password='senha_segura_123'
+                ),
+                admin_user,
+            )
+        assert exc.value.status_code == HTTPStatus.CONFLICT
+
     async def test_delete_exige_admin_403(self, fake_db, comum_user):
         with pytest.raises(HTTPException) as exc:
             await self.svc.delete_nail_design(fake_db, 1, comum_user)

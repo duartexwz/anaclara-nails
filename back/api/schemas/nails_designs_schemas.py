@@ -5,6 +5,9 @@ class NailDesignBase(BaseModel):
     nome: str
     cpf: str
     telefone: str
+    eh_admin: Optional[bool] = False
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 class NailDesignResponse(NailDesignBase):
     id: int

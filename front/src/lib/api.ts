@@ -756,11 +756,55 @@ export async function criarAdministradorApi(dados: {
   });
 }
 
+export async function atualizarAdministradorApi(
+  id: number,
+  dados: Partial<{ nome: string; email: string; password: string }>,
+): Promise<AdministradorApi> {
+  return apiFetch<AdministradorApi>(`/api/v1/administradores/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(dados),
+  });
+}
+
 export async function listarAdministradoresApi(): Promise<AdministradorApi[]> {
   const data = await apiFetch<{ administradores: AdministradorApi[] }>(
     "/api/v1/administradores",
   );
   return data.administradores ?? [];
+}
+
+/* ------------------------------- Nail Designs ------------------------ */
+
+export type NailDesignApi = {
+  id: number;
+  nome: string;
+  cpf: string;
+  telefone: string;
+};
+
+export async function listarNailDesignsApi(): Promise<NailDesignApi[]> {
+  const data = await apiFetch<{ nails_designs: NailDesignApi[] }>(
+    "/api/v1/nail-designs",
+  );
+  return data.nails_designs ?? [];
+}
+
+export async function criarNailDesignApi(dados: {
+  nome: string;
+  cpf: string;
+  telefone: string;
+  eh_admin?: boolean;
+  email?: string;
+  password?: string;
+}): Promise<NailDesignApi> {
+  return apiFetch<NailDesignApi>("/api/v1/nail-designs", {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function excluirNailDesignApi(id: number): Promise<void> {
+  await apiFetch(`/api/v1/nail-designs/${id}`, { method: "DELETE" });
 }
 
 /* ------------------------------- Push -------------------------------- */
