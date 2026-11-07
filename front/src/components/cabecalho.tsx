@@ -67,7 +67,7 @@ export function Cabecalho() {
 
         <div className="hidden items-center gap-2 shrink-0 md:flex">
           {/* Aba Painel: visível somente após login E só para administradora (RF18) */}
-          {usuario?.perfil === "admin" && usuario?.perfil === "nail_admin" && (
+          {ehAdmin && (
             <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
               <Link to="/admin">
                 <ShieldCheck className="mr-1 size-4" /> Painel
@@ -122,7 +122,7 @@ export function Cabecalho() {
                   {item.rotulo}
                 </Link>
               ))}
-              {usuario?.perfil === "admin" && (
+              {ehAdmin && (
                 <Link
                   to="/admin"
                   onClick={() => setMenu(false)}

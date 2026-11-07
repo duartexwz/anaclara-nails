@@ -164,7 +164,8 @@ async def get_user_by_email(
         id,
         nome,
         email,
-        type_user_id
+        type_user_id,
+        nail_design_id
     FROM administradores WHERE email = $1
     '''
 
@@ -178,7 +179,8 @@ async def get_user_by_email(
             nome=admin_record['nome'],
             email=admin_record['email'],
             type_user_id=admin_record['type_user_id'] or 1,
-            is_admin=True
+            is_admin=True,
+            nail_design_id=admin_record.get('nail_design_id')
         )
 
     query_admin_in_usuarios = '''

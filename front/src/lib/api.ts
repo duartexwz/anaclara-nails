@@ -214,6 +214,7 @@ export type UsuarioApi = {
   email: string;
   type_user_id: number;
   is_admin: boolean;
+  nail_design_id?: number | null
 };
 
 export async function loginApi(
@@ -828,6 +829,10 @@ export async function atualizarAdministradorApi(
     method: "PATCH",
     body: JSON.stringify(dados),
   });
+}
+
+export async function excluirAdministradorApi(id: number): Promise<void> {
+  await apiFetch(`/api/v1/administradores/${id}`, { method: "DELETE" });
 }
 
 export async function listarAdministradoresApi(): Promise<AdministradorApi[]> {

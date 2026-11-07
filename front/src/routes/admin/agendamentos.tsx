@@ -11,6 +11,7 @@ import {
   GhostButton,
 } from "@/components/admin/AdminShell";
 import { useAgenda, type AgendamentoExibicao } from "@/hooks/useAgenda";
+import { useAuth } from "@/lib/auth";
 import { ApiError, enviarMensagemApi, excluirAgendamentoApi } from "@/lib/api";
 import { brl } from "@/lib/dados";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,6 +53,8 @@ const filtros = ["Todos", "Confirmado", "Aguardando sinal", "Remarcado", "Conclu
 
 function Agendamentos() {
   const queryClient = useQueryClient();
+  // Excluir agendamento continua exclusivo da admin completa (type 1).
+  const { ehNailAdmin } = useAuth();
   const [filtro, setFiltro] = useState<(typeof filtros)[number]>("Todos");
   const [busca, setBusca] = useState("");
   const [antecipar, setAntecipar] = useState<AgendamentoExibicao | null>(null);
@@ -308,16 +311,18 @@ function Agendamentos() {
                         >
                           <CalendarClock className="mr-1 size-3.5" /> Remarcar
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          title="Cancelar agendamento"
-                          onClick={() => setCancelar(a)}
-                        >
-                          <Trash2 className="size-3.5" />
-                          <span className="sr-only">Cancelar</span>
-                        </Button>
+                        {!ehNailAdmin && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-xl border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            title="Cancelar agendamento"
+                            onClick={() => setCancelar(a)}
+                          >
+                            <Trash2 className="size-3.5" />
+                            <span className="sr-only">Cancelar</span>
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -73,6 +73,7 @@ class TokenServices:
                 admin_record['email'],
                 type_user_id=admin_record['type_user_id'],
                 is_admin=True,
+                nail_design_id=admin_record.get('nail_design_id'),
             )
 
         # 2. TABELA USUÁRIOS → LOGIN DE USUÁRIO (USER)
@@ -101,7 +102,7 @@ class TokenServices:
 
     async def _emitir_sessao(
         self, user_id: int, nome: str, email: str, type_user_id: int,
-        is_admin: bool
+        is_admin: bool, nail_design_id: int | None = None
     ) -> dict:
         access_token = await create_access_token(
             data={
@@ -121,7 +122,8 @@ class TokenServices:
             nome=nome,
             email=email,
             type_user_id=type_user_id,
-            is_admin=is_admin
+            is_admin=is_admin,
+            nail_design_id=nail_design_id
         )
 
         return {

@@ -17,6 +17,7 @@ export type Usuario = {
   email: string;
   is_admin: boolean;
   perfil: Perfil;
+  nail_design_id?: number | null
 };
 
 type AuthContexto = {
@@ -47,6 +48,7 @@ function mapearUsuario(api: {
   email: string;
   type_user_id?: number | null;
   is_admin: boolean;
+  nail_design_id?: number | null;
 }): Usuario {
   return {
     id: api.id,
@@ -55,6 +57,7 @@ function mapearUsuario(api: {
     is_admin: api.is_admin,
     // type_user_id 3 = NAIL_ADMIN (nail designer com acesso limitado de admin)
     perfil: !api.is_admin ? "cliente" : api.type_user_id === 3 ? "nail_admin" : "admin",
+    nail_design_id: api.nail_design_id ?? null,
   };
 }
 

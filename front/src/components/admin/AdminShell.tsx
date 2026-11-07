@@ -52,7 +52,8 @@ const nav = [
   { to: "/admin/clientes", label: "Clientes", icon: Users },
   { to: "/admin/mensagens", label: "Mensagens", icon: MessageCircle },
   { to: "/admin/horarios", label: "Horários", icon: Clock },
-  { to: "/admin/equipe", label: "Nail Designers", icon: User}
+  { to: "/admin/equipe", label: "Nail Designers", icon: User},
+  { to: "/admin/administradores", label: "Administradores", icon: User}
 ] as const;
 
 export function AdminShell({
@@ -307,18 +308,6 @@ export function AdminShell({
                   <KeyRound className="size-4 shrink-0 text-primary" />
                   <span>Mudar minha senha</span>
                 </button>
-                {ehNailAdmin ? null : (
-                  <button
-                    onClick={() => {
-                      setOpenNav(false);
-                      setAdminAberto(true);
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  >
-                    <Plus className="size-4 shrink-0 text-primary" />
-                    <span>Adicionar admin</span>
-                  </button>
-                )}
                 <button
                   onClick={() => {
                     sair();

@@ -17,6 +17,7 @@ import { Route as MeusAgendamentosRouteImport } from './routes/meus-agendamentos
 import { Route as MeusDadosRouteImport } from './routes/meus-dados'
 import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAdministradoresRouteImport } from './routes/admin/administradores'
 import { Route as AdminAgendamentosRouteImport } from './routes/admin/agendamentos'
 import { Route as AdminCatalogoRouteImport } from './routes/admin/catalogo'
 import { Route as AdminClientesRouteImport } from './routes/admin/clientes'
@@ -64,6 +65,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAdministradoresRoute = AdminAdministradoresRouteImport.update({
+  id: '/admin/administradores',
+  path: '/admin/administradores',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAgendamentosRoute = AdminAgendamentosRouteImport.update({
   id: '/admin/agendamentos',
   path: '/admin/agendamentos',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/meus-agendamentos': typeof MeusAgendamentosRoute
   '/meus-dados': typeof MeusDadosRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/admin/administradores': typeof AdminAdministradoresRoute
   '/admin/agendamentos': typeof AdminAgendamentosRoute
   '/admin/catalogo': typeof AdminCatalogoRoute
   '/admin/clientes': typeof AdminClientesRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/meus-agendamentos': typeof MeusAgendamentosRoute
   '/meus-dados': typeof MeusDadosRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/admin/administradores': typeof AdminAdministradoresRoute
   '/admin/agendamentos': typeof AdminAgendamentosRoute
   '/admin/catalogo': typeof AdminCatalogoRoute
   '/admin/clientes': typeof AdminClientesRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/meus-agendamentos': typeof MeusAgendamentosRoute
   '/meus-dados': typeof MeusDadosRoute
   '/redefinir-senha': typeof RedefinirSenhaRoute
+  '/admin/administradores': typeof AdminAdministradoresRoute
   '/admin/agendamentos': typeof AdminAgendamentosRoute
   '/admin/catalogo': typeof AdminCatalogoRoute
   '/admin/clientes': typeof AdminClientesRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/meus-agendamentos'
     | '/meus-dados'
     | '/redefinir-senha'
+    | '/admin/administradores'
     | '/admin/agendamentos'
     | '/admin/catalogo'
     | '/admin/clientes'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/meus-agendamentos'
     | '/meus-dados'
     | '/redefinir-senha'
+    | '/admin/administradores'
     | '/admin/agendamentos'
     | '/admin/catalogo'
     | '/admin/clientes'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/meus-agendamentos'
     | '/meus-dados'
     | '/redefinir-senha'
+    | '/admin/administradores'
     | '/admin/agendamentos'
     | '/admin/catalogo'
     | '/admin/clientes'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   MeusAgendamentosRoute: typeof MeusAgendamentosRoute
   MeusDadosRoute: typeof MeusDadosRoute
   RedefinirSenhaRoute: typeof RedefinirSenhaRoute
+  AdminAdministradoresRoute: typeof AdminAdministradoresRoute
   AdminAgendamentosRoute: typeof AdminAgendamentosRoute
   AdminCatalogoRoute: typeof AdminCatalogoRoute
   AdminClientesRoute: typeof AdminClientesRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/administradores': {
+      id: '/admin/administradores'
+      path: '/admin/administradores'
+      fullPath: '/admin/administradores'
+      preLoaderRoute: typeof AdminAdministradoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/agendamentos': {
       id: '/admin/agendamentos'
       path: '/admin/agendamentos'
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeusAgendamentosRoute: MeusAgendamentosRoute,
   MeusDadosRoute: MeusDadosRoute,
   RedefinirSenhaRoute: RedefinirSenhaRoute,
+  AdminAdministradoresRoute: AdminAdministradoresRoute,
   AdminAgendamentosRoute: AdminAgendamentosRoute,
   AdminCatalogoRoute: AdminCatalogoRoute,
   AdminClientesRoute: AdminClientesRoute,

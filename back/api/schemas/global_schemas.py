@@ -7,6 +7,9 @@ class UsuarioLogado(BaseModel):
     email: str
     type_user_id: int
     is_admin: bool
+    # Vínculo da conta administrativa com a profissional (nail designer).
+    # Só é preenchido para contas criadas em `administradores` com type 3.
+    nail_design_id: int | None = None
 
 class Token(BaseModel):
     access_token: str

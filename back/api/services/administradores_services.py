@@ -60,8 +60,13 @@ class AdministradoresServices:
 
         dados = administradores.model_dump()
         if dados.get('nail_design_id'):
-            dados['type_user_id'] = dados.get('type_user_id') or TypeUserEnum.NAIL_ADMIN.value
-        elif not dados.get('type_user_id'):
+            # Conta vinculada a uma nail designer É nail admin (3) — o tipo
+            # vem do vínculo, não do que o cliente enviar (evita gravar 2).
+            dados['type_user_id'] = TypeUserEnum.NAIL_ADMIN.value
+        elif dados.get('type_user_id') not in {
+            TypeUserEnum.ADMIN.value,
+            TypeUserEnum.NAIL_ADMIN.value,
+        }:
             dados['type_user_id'] = TypeUserEnum.ADMIN.value
         dados['password'] = get_password_hash(dados['password'])
 
@@ -134,6 +139,19 @@ class AdministradoresServices:
 
         if dados.get('password'):
             dados['password'] = get_password_hash(dados['password'])
+
+        # Se vincular (ou trocar o vínculo) a uma nail, o perfil vira 3.
+        if dados.get('nail_design_id'):
+            dados['type_user_id'] = TypeUserEnum.NAIL_ADMIN.value
+        elif dados.get('type_user_id') not in {
+            None,
+            TypeUserEnum.ADMIN.value,
+            TypeUserEnum.NAIL_ADMIN.value,
+        }:
+            raise HTTPException(
+                detail='Tipo de usuário inválido',
+                status_code=HTTPStatus.BAD_REQUEST
+            )
 
         if not dados:
             raise HTTPException(

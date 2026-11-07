@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/lib/auth";
 import {
   AdminShell,
   Card,
@@ -64,6 +65,7 @@ type DiaForm = {
 };
 
 function Horarios() {
+  const { usuario } = useAuth();
   const queryClient = useQueryClient();
   const [bloqueioAberto, setBloqueioAberto] = useState(false);
   const [novaData, setNovaData] = useState("");
@@ -125,7 +127,13 @@ function Horarios() {
         intervalo_minutos: proximo.intervalo,
       };
       if (proximo.rowId == null) {
-        await criarProgramacaoApi({ profissional_id: 1, ...payload });
+        // Nail admin usa o vínculo da própria conta; admin completo mantém
+        // o comportamento antigo (profissional 1).
+        const profissionalId = usuario?.nail_design_id ?? 1;
+        await criarProgramacaoApi({
+          profissional_id: profissionalId,
+          ...payload,
+        });
       } else {
         await atualizarProgramacaoApi(proximo.rowId, payload);
       }
