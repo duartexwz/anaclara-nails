@@ -3,6 +3,7 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
+from api.permissions import is_admin_or_nail
 from api.repositories.agendamentos_repository import AgendamentosRepository
 from api.repositories.modelos_unhas_repository import ModelosUnhasRepository
 from api.schemas.agendamentos_schemas import (
@@ -113,10 +114,8 @@ class AgendamentosServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        # Confirmar/remarcar/status: admin completo (1) e nail admin (3).
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN
@@ -211,8 +210,8 @@ class AgendamentosServices:
                 status_code=HTTPStatus.NOT_FOUND
             )
 
-        # RF17 — cancela a admin ou a dona do agendamento (via email_id)
-        if current_user.type_user_id != TypeUserEnum.ADMIN.value:
+        # RF17 — cancela a admin (ou nail admin) ou a dona do agendamento (via email_id)
+        if not is_admin_or_nail(current_user):
             from api.repositories.clientes_repository import (
                 ClientesRepository,
             )

@@ -3,9 +3,9 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
+from api.permissions import is_admin_or_nail
 from api.repositories.agendamentos_repository import AgendamentosRepository
 from api.repositories.mensagens_repository import MensagensRepository
-from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 from api.schemas.mensagens_schemas import (
     MensagemBase,
@@ -182,11 +182,11 @@ class MensagensServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        # ESCOPO POR PERFIL: admin vê tudo (painel por cliente);
-        # cada sessão comum vê só a própria conversa privada com a
-        # admin (antes vazava tudo; e sem cadastro o usuário ao menos
-        # vê o que ele mesmo enviou, pois usuario_id nunca é nulo).
-        if current_user.type_user_id != TypeUserEnum.ADMIN.value:
+        # ESCOPO POR PERFIL: admin (1) e nail admin (3) veem o mural
+        # inteiro do painel; cada sessão comum vê só a própria conversa
+        # privada com a admin (antes vazava tudo; e sem cadastro o usuário
+        # ao menos vê o que ele mesmo enviou, pois usuario_id nunca é nulo).
+        if not is_admin_or_nail(current_user):
             filtrar.usuario_id = current_user.id
 
         mensagens = await self.mensagens_repository.buscar(

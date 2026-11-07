@@ -50,14 +50,18 @@ def _enviar_para_inscricao(subscription: dict, titulo: str, corpo: str,
 
 
 async def _ids_admin(db: Connection) -> set:
-    from api.repositories.usuarios_repository import UsuarioRepository
     from api.schemas.enums import TypeUserEnum
-    from api.schemas.usuarios_schemas import UsuarioFilter
 
-    admins = await UsuarioRepository().buscar(
-        db, UsuarioFilter(type_user_id=TypeUserEnum.ADMIN.value, limit=500)
+    # Admins completos (1) e nail admins (3) recebem push administrativo
+    rows = await db.fetch(
+        '''
+        SELECT id FROM administradores WHERE COALESCE(type_user_id, 1) = ANY($1::int[])
+        UNION
+        SELECT id FROM usuarios WHERE type_user_id = ANY($1::int[])
+        ''',
+        [TypeUserEnum.ADMIN.value, TypeUserEnum.NAIL_ADMIN.value],
     )
-    return {u['id'] for u in admins}
+    return {u['id'] for u in rows}
 
 
 async def _disparar(

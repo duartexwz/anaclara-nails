@@ -146,6 +146,23 @@ def as_anon():
     return None
 
 
+@pytest.fixture
+def nail_admin_user():
+    return UsuarioLogado(
+        id=3,
+        nome='Nail Designer Teste',
+        email='nail@anaclaranails.com',
+        type_user_id=3,
+        is_admin=True
+    )
+
+
+@pytest.fixture
+def as_nail_admin(nail_admin_user):
+    login_as(nail_admin_user)
+    return nail_admin_user
+
+
 @pytest_asyncio.fixture
 async def client():
     ## CLIENTE ASGI SEM LIFESPAN (SEM BANCO REAL)

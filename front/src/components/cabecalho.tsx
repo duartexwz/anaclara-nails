@@ -21,7 +21,7 @@ export function Cabecalho() {
   const [aberto, setAberto] = useState(false);
   const [modo, setModo] = useState<ModoAuth>("login");
   const [menu, setMenu] = useState(false);
-  const { usuario, entrar, cadastrar, sair } = useAuth();
+  const { usuario, entrar, cadastrar, sair, ehAdmin } = useAuth();
   const instalavel = useInstalavel();
 
   const instalar = async () => {
@@ -67,7 +67,7 @@ export function Cabecalho() {
 
         <div className="hidden items-center gap-2 shrink-0 md:flex">
           {/* Aba Painel: visível somente após login E só para administradora (RF18) */}
-          {usuario?.perfil === "admin" && (
+          {usuario?.perfil === "admin" || usuario?.perfil === "nail_admin" && (
             <Button variant="ghost" size="sm" className="text-muted-foreground" asChild>
               <Link to="/admin">
                 <ShieldCheck className="mr-1 size-4" /> Painel

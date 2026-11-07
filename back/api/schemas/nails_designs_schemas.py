@@ -23,6 +23,7 @@ class NailDesignUpdate(BaseModel):
     nome: Optional[str] = None
     cpf: Optional[str] = None
     telefone: Optional[str] = None
+    email: Optional[EmailStr] = None
 
 class NailDesignFilter(BaseModel):
     nome: Optional[str] = None

@@ -9,6 +9,7 @@ import { Sparkles, Lock, Mail, Phone, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { ApiError, recuperarSenhaApi } from "@/lib/api";
+import { mascararTelefone } from "@/lib/masks";
 
 export type ModoAuth = "login" | "cadastro" | "recuperar";
 
@@ -125,7 +126,18 @@ export function AuthModais({ open, modo, onOpenChange, onModo, onEntrar, onCadas
             >
               <Campo id="cad-nome" name="cad-nome" rotulo="Nome completo" icone={<User className="size-4" />} placeholder="Seu nome" />
               <Campo id="cad-email" name="cad-email" rotulo="E-mail" icone={<Mail className="size-4" />} type="email" placeholder="voce@email.com" />
-              <Campo id="cad-tel" name="cad-tel" rotulo="Telefone / WhatsApp" icone={<Phone className="size-4" />} placeholder="(11) 90000-0000" />
+              <Campo
+                id="cad-tel"
+                name="cad-tel"
+                rotulo="Telefone / WhatsApp"
+                icone={<Phone className="size-4" />}
+                placeholder="(11) 90000-0000"
+                inputMode="numeric"
+                maxLength={15}
+                onChange={(e) => {
+                  e.target.value = mascararTelefone(e.target.value);
+                }}
+              />
               <Campo id="cad-senha" name="cad-senha" rotulo="Senha" icone={<Lock className="size-4" />} type="password" placeholder="Mínimo 8 caracteres" />
               <label className="flex items-start gap-2 text-xs text-muted-foreground">
                 <Checkbox className="mt-0.5" defaultChecked />

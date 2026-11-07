@@ -330,3 +330,71 @@ class TestRotasNovas:
             cookies=CSRF_COOKIES,
         )
         assert resposta.status_code == 201
+
+
+class TestNailAdminPermissions:
+    async def test_nail_admin_pode_deletar_agendamento(self, fake_db, nail_admin_user):
+        svc = AgendamentosServices()
+        fake_db.queue_fetchrow({'id': 10, 'cliente_id': 5}, {'id': 10})
+        res = await svc.delete_agendamento(fake_db, 10, nail_admin_user)
+        assert res == {'message': 'Agendamento deletado com sucesso.'}
+
+    async def test_nail_admin_ve_todas_mensagens(self, fake_db, nail_admin_user):
+        svc = MensagensServices()
+        from api.schemas.mensagens_schemas import MensagemFilter
+        f = MensagemFilter()
+        fake_db.queue_fetch([{'id': 1, 'texto': 'msg1'}, {'id': 2, 'texto': 'msg2'}])
+        res = await svc.get_mensagens(fake_db, f, nail_admin_user)
+        # usuario_id não é forçado para o id da nail admin (mural completo)
+        assert f.usuario_id is None
+        assert len(res) == 2
+
+    async def test_nail_admin_pode_alterar_propria_senha(self, fake_db, nail_admin_user):
+        from api.schemas.administradores_schemas import AdministradorUpdate
+        from api.services.administradores_services import AdministradoresServices
+        svc = AdministradoresServices()
+        fake_db.queue_fetchrow({'id': 3, 'nome': 'Nail Teste'}, {'id': 3, 'nome': 'Nail Teste'})
+        res = await svc.update_administrador(
+            fake_db, 3, AdministradorUpdate(password='novaSenha123'), nail_admin_user
+        )
+        assert res is not None
+
+    async def test_nail_admin_bloqueada_alterar_outro_admin(self, fake_db, nail_admin_user):
+        from api.schemas.administradores_schemas import AdministradorUpdate
+        from api.services.administradores_services import AdministradoresServices
+        svc = AdministradoresServices()
+        with pytest.raises(HTTPException) as exc:
+            await svc.update_administrador(
+                fake_db, 1, AdministradorUpdate(password='novaSenha123'), nail_admin_user
+            )
+        assert exc.value.status_code == HTTPStatus.FORBIDDEN
+
+    async def test_nail_admin_bloqueada_alterar_proprio_tipo(self, fake_db, nail_admin_user):
+        from api.schemas.administradores_schemas import AdministradorUpdate
+        from api.services.administradores_services import AdministradoresServices
+        svc = AdministradoresServices()
+        with pytest.raises(HTTPException) as exc:
+            await svc.update_administrador(
+                fake_db, 3, AdministradorUpdate(type_user_id=1), nail_admin_user
+            )
+        assert exc.value.status_code == HTTPStatus.FORBIDDEN
+
+    async def test_nail_admin_bloqueada_criar_nail_design(self, fake_db, nail_admin_user):
+        from api.schemas.nails_designs_schemas import NailDesignBase
+        from api.services.nail_designs_services import NailDesignsServices
+        svc = NailDesignsServices()
+        with pytest.raises(HTTPException) as exc:
+            await svc.create_nail_design(
+                fake_db,
+                NailDesignBase(nome='Outra Nail', cpf='12345678901', telefone='11999999999'),
+                nail_admin_user,
+            )
+        assert exc.value.status_code == HTTPStatus.FORBIDDEN
+
+    async def test_nail_admin_acessa_notificacoes(self, fake_db, nail_admin_user):
+        from api.schemas.notificacoes_schemas import NotificacaoFilter
+        from api.services.notificacoes_services import NotificacoesServices
+        svc = NotificacoesServices()
+        fake_db.queue_fetch([{'id': 1, 'lida': False}])
+        res = await svc.get_notificacoes(fake_db, NotificacaoFilter(), nail_admin_user)
+        assert len(res) == 1

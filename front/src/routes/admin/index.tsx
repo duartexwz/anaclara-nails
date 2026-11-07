@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Suspense, lazy, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { NovaNailModal } from "@/components/admin/NovaNail.tsx";
+import { Plus } from "lucide-react";
 import {
   AdminShell,
   Card,
@@ -13,6 +15,7 @@ import {
 import { PaymentModal } from "@/components/admin/PaymentModal";
 import { PopupUltimoAgendamento } from "@/components/admin/PopupUltimoAgendamento";
 import { useAgenda, type AgendamentoExibicao } from "@/hooks/useAgenda";
+import { useAuth } from "@/lib/auth";
 import { listarNotificacoesApi } from "@/lib/api";
 import { brl } from "@/lib/dados";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,8 +54,10 @@ export const Route = createFileRoute("/admin/")({
 const DIAS_CURTO = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 function Painel() {
+  const { usuario, ehNailAdmin } = useAuth();
   const [pagamento, setPagamento] = useState<AgendamentoExibicao | null>(null);
   const { itens, modelos, isPending, isError } = useAgenda();
+  const [novoAgendamentoOpen, setNovoAgendamentoOpen] = useState(false);
   const notificacoesQuery = useQuery({
     queryKey: ["notificacoes"],
     queryFn: () => listarNotificacoesApi(),
@@ -106,10 +111,15 @@ function Painel() {
 
   return (
     <AdminShell
-      title="Bom dia, Ana Clara"
+      title={usuario?.nome ? `Olá, ${usuario.nome}` : "Olá, Ana Clara"}
       subtitle={`${itens.length} agendamento(s) no total`}
       actions={
         <>
+          {!ehNailAdmin && (
+            <PrimaryButton onClick={() => setNovoAgendamentoOpen(true)}>
+              <Plus className="size-4 mr-2" /> Novo Nail Design
+            </PrimaryButton>
+          )}
           <PrimaryButton>
             <Link to="/admin/agendamentos" className="flex items-center gap-2">
               <CalendarDays className="size-4" /> Ver agendamentos
@@ -278,7 +288,14 @@ function Painel() {
           setPagamento(null);
         }}
       />
-      <PopupUltimoAgendamento itens={itens} />
+      {!ehNailAdmin && (
+        <NovaNailModal
+          open={novoAgendamentoOpen}
+          onOpenChange={setNovoAgendamentoOpen}
+        />
+      )}
+      
     </AdminShell>
+
   );
 }

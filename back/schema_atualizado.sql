@@ -242,6 +242,7 @@ CREATE TABLE public.nail_designs (
     nome character varying(100) NOT NULL,
     cpf character varying(14) NOT NULL,
     telefone character varying(30),
+    email character varying(255),
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );

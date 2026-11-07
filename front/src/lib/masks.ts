@@ -20,6 +20,21 @@ export function mascararTelefone(v: string): string {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
+/** Máscara de valor monetário/decimal — dígitos e até 2 decimais ("140" · "140,50"). */
+export function mascararMoeda(v: string): string {
+  const s = v.replace(/\./g, ",").replace(/[^\d,]/g, "");
+  if (!s) return "";
+  const [inteiro = "", ...demais] = s.split(",");
+  const digitos = inteiro.replace(/^0+(?=\d)/, "") || "0";
+  if (demais.length === 0) return digitos;
+  return `${digitos},${demais.join("").slice(0, 2)}`;
+}
+
+/** Máscara de duração ("1h30" · "45min" · "90") — mantém só o que o formato aceita. */
+export function mascararDuracao(v: string): string {
+  return v.toLowerCase().replace(/[^0-9hmin.,\s]/g, "");
+}
+
 export function desmascararTelefone(v: string): string {
   return apenasDigitos(v);
 }

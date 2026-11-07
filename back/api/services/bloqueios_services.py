@@ -4,9 +4,9 @@ from asyncpg import Connection
 from asyncpg.exceptions import UniqueViolationError
 from fastapi import HTTPException
 
+from api.permissions import is_admin_or_nail
 from api.repositories.bloqueios_repository import BloqueiosRepository
 from api.schemas.bloqueios_schemas import BloqueioBase, BloqueioFilter
-from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 
 
@@ -23,10 +23,8 @@ class BloqueiosServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        # Bloqueios: admin completo (1) e nail admin (3) gerenciam a agenda.
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN
@@ -74,10 +72,7 @@ class BloqueiosServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN

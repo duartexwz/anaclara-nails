@@ -3,10 +3,10 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
+from api.permissions import is_admin_or_nail
 from api.repositories.programacao_semanal_repository import (
     ProgramacaoSemanalRepository,
 )
-from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 from api.schemas.programacao_semanal_schemas import (
     ProgramacaoSemanalBase,
@@ -28,10 +28,8 @@ class ProgramacaoSemanalServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        # Programação: admin completo (1) e nail admin (3) montam a grade.
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN
@@ -86,10 +84,7 @@ class ProgramacaoSemanalServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN
@@ -152,10 +147,7 @@ class ProgramacaoSemanalServices:
         current_user: UsuarioLogado
     ) -> dict:
 
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN

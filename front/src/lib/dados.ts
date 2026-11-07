@@ -24,9 +24,14 @@ export function duracaoParaApi(texto: string): string | null {
   const t = texto.trim().toLowerCase().replace(",", ".");
   if (!t) return null;
   let minutos = 0;
-  const hMatch = t.match(/(\d+(?:\.\d+)?)\s*h/);
-  const mMatch = t.match(/(\d+(?:\.\d+)?)\s*min/);
-  if (hMatch) minutos += Math.round(parseFloat(hMatch[1]!) * 60);
+  // "1h30" / "2h05" — horas e os minutos que vêm depois do "h" (grupo 2)
+  const hMatch = t.match(/(\d+(?:\.\d+)?)\s*h(?:\s*(\d+)\s*(?:min)?)?/);
+  // "45min" — só quando o "hMatch" já não capturou os minutos
+  const mMatch = hMatch?.[2] ? null : t.match(/(\d+(?:\.\d+)?)\s*min/);
+  if (hMatch) {
+    minutos += Math.round(parseFloat(hMatch[1]!) * 60);
+    if (hMatch[2]) minutos += Math.round(parseFloat(hMatch[2]));
+  }
   if (mMatch) minutos += Math.round(parseFloat(mMatch[1]!));
   if (!hMatch && !mMatch) {
     const n = Number(t);

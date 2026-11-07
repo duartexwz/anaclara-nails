@@ -804,6 +804,7 @@ export type AdministradorApi = {
   nome: string;
   email: string;
   type_user_id: number;
+  nail_design_id?: number | null;
 };
 
 export async function criarAdministradorApi(dados: {
@@ -811,6 +812,7 @@ export async function criarAdministradorApi(dados: {
   email: string;
   password: string;
   type_user_id: number;
+  nail_design_id?: number;
 }): Promise<AdministradorApi> {
   return apiFetch<AdministradorApi>("/api/v1/administradores", {
     method: "POST",
@@ -842,6 +844,7 @@ export type NailDesignApi = {
   nome: string;
   cpf: string;
   telefone: string;
+  email: string | null;
 };
 
 export async function listarNailDesignsApi(): Promise<NailDesignApi[]> {
@@ -856,6 +859,9 @@ export async function criarNailDesignApi(dados: {
   cpf: string;
   telefone: string;
   eh_admin?: boolean;
+  // Não é enviado ao back: o schema NailDesignBase não possui o campo
+  // (pydantic ignora). Deixado opcional para não travar os chamadores.
+  eh_nail_admin?: boolean;
   email?: string;
   password?: string;
 }): Promise<NailDesignApi> {

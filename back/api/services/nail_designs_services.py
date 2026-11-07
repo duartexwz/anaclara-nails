@@ -71,6 +71,10 @@ class NailDesignsServices:
             'telefone': nail_design.telefone,
         }
 
+        # Coluna nail_designs.email: grava quando o front envia
+        if nail_design.email:
+            dados['email'] = nail_design.email
+
         resultado = await self.nail_designs_repository.criar(
             db, dados
         )
@@ -91,7 +95,7 @@ class NailDesignsServices:
                     'nome': nail_design.nome,
                     'email': str(nail_design.email),
                     'password': get_password_hash(nail_design.password),
-                    'type_user_id': TypeUserEnum.ADMIN.value,
+                    'type_user_id': TypeUserEnum.NAIL_ADMIN.value,
                     'nail_design_id': resultado['id'],
                 }
             )
@@ -157,6 +161,17 @@ class NailDesignsServices:
         ):
             raise HTTPException(
                 detail='O cpf já pertence a uma profissional cadastrada',
+                status_code=HTTPStatus.CONFLICT
+            )
+        if (
+            dados.get('email') and await
+            self.nail_designs_repository.existe(
+                db, 'email', dados['email'],
+                excluir_id=nail_design_id
+            )
+        ):
+            raise HTTPException(
+                detail='O email já pertence a uma profissional cadastrada',
                 status_code=HTTPStatus.CONFLICT
             )
 

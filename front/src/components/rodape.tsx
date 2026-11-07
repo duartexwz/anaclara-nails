@@ -3,7 +3,7 @@ import { Instagram, MessageCircle, MapPin, Heart } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export function Rodape() {
-  const { usuario } = useAuth();
+  const { ehAdmin } = useAuth();
   return (
     <footer className="mt-20 bg-primary text-primary-foreground">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3">
@@ -37,7 +37,7 @@ export function Rodape() {
             <Link to="/catalogo" className="hover:underline">Catálogo</Link>
             <Link to="/agendamento" className="hover:underline">Agendar horário</Link>
             <Link to="/meus-dados" className="hover:underline">Meus dados</Link>
-            {usuario?.perfil === "admin" && (
+            {ehAdmin && (
               <Link to="/admin" className="hover:underline">Área da profissional</Link>
             )}
           </div>

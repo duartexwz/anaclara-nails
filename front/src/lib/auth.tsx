@@ -9,7 +9,7 @@ import { STORAGE_KEYS, obterItem, salvarItem, removerItem } from "./local-storag
  * A sessão é restaurada instantaneamente do localStorage para evitar piscadas (FOUC).
  */
 
-export type Perfil = "cliente" | "admin";
+export type Perfil = "cliente" | "admin" | "nail_admin";
 
 export type Usuario = {
   id: number;
@@ -26,6 +26,7 @@ type AuthContexto = {
   cadastrar: (nome: string, email: string, senha: string) => Promise<void>;
   sair: () => void;
   ehAdmin: boolean;
+  ehNailAdmin: boolean;
 };
 
 const Ctx = createContext<AuthContexto | null>(null);
@@ -52,7 +53,8 @@ function mapearUsuario(api: {
     email: api.email,
     nome: api.nome?.trim() ? api.nome : nomeDoEmail(api.email),
     is_admin: api.is_admin,
-    perfil: api.is_admin ? "admin" : "cliente",
+    // type_user_id 3 = NAIL_ADMIN (nail designer com acesso limitado de admin)
+    perfil: !api.is_admin ? "cliente" : api.type_user_id === 3 ? "nail_admin" : "admin",
   };
 }
 
@@ -122,7 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         entrar,
         cadastrar,
         sair,
+        // is_admin cobre admin completo (1) e nail admin (3): ambos entram
+        // no painel. ehNailAdmin identifica o acesso limitado (type 3).
         ehAdmin: usuario?.is_admin ?? false,
+        ehNailAdmin: usuario?.perfil === "nail_admin",
       }}
     >
       {children}

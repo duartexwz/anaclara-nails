@@ -7,7 +7,8 @@ class NailDesignsRepository(QueryRepository):
         'id',
         'nome',
         'cpf',
-        'telefone'
+        'telefone',
+        'email',
     }
 
     mapa_filtros = {

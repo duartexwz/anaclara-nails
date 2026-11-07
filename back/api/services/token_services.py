@@ -16,6 +16,7 @@ from api.repositories.password_resets_repository import (
 )
 from api.repositories.token_repository import LoginForAccessTokenRepository
 from api.repositories.usuarios_repository import UsuarioRepository
+from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 from api.schemas.password_reset_schemas import (
     PasswordResetFilter,
@@ -30,7 +31,6 @@ from api.security import (
 )
 from api.services.email_service import enviar_email_recuperacao
 from api.settings import settings
-from api.schemas.enums import TypeUserEnum
 
 oauth2_scheme = Annotated[OAuth2PasswordRequestForm, Depends()]
 
@@ -59,19 +59,22 @@ class TokenServices:
             db, email
         )
 
+
         if admin_record:
             if not self._senha_confere(senha, admin_record.get('password')):
                 raise HTTPException(
                     detail='Usuário ou senha inválidos',
                     status_code=HTTPStatus.UNAUTHORIZED
                 )
+            # type_user_id 3 (NAIL_ADMIN) também loga por aqui: as nails
+            # administradoras têm conta na tabela `administradores`.
             return await self._emitir_sessao(
                 admin_record['id'], admin_record['nome'],
                 admin_record['email'],
                 type_user_id=admin_record['type_user_id'],
-                is_admin=True, 
+                is_admin=True,
             )
-        
+
         # 2. TABELA USUÁRIOS → LOGIN DE USUÁRIO (USER)
         user_record = await self.token_repository.buscar_por_email(
             db, email
@@ -88,7 +91,6 @@ class TokenServices:
                 detail='Usuário ou senha inválidos',
                 status_code=HTTPStatus.UNAUTHORIZED
             )
-        
 
         return await self._emitir_sessao(
             user_record['id'], user_record['nome'],

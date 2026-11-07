@@ -22,8 +22,8 @@ import { useState, type ReactNode } from "react";
 import { AuthModais, type ModoAuth } from "@/components/auth-modais";
 import { SinoNotificacoes } from "@/components/admin/SinoNotificacoes";
 import { useAuth } from "@/lib/auth";
-import { atualizarAdministradorApi, criarAdministradorApi } from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { listarNailDesignsApi, atualizarAdministradorApi, criarAdministradorApi, ApiError} from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
@@ -34,10 +34,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ApiError } from "@/lib/api";
 
 const nav = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard },
@@ -46,6 +52,7 @@ const nav = [
   { to: "/admin/clientes", label: "Clientes", icon: Users },
   { to: "/admin/mensagens", label: "Mensagens", icon: MessageCircle },
   { to: "/admin/horarios", label: "Horários", icon: Clock },
+  { to: "/admin/equipe", label: "Nail Designers", icon: User}
 ] as const;
 
 export function AdminShell({
@@ -66,21 +73,53 @@ export function AdminShell({
   const [adminNome, setAdminNome] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [adminSenha, setAdminSenha] = useState("");
-
+  const [adminTipoSelecionado, setAdminTipoSelecionado] = useState<string>("outro");
+  const nailDesignsQuery = useQuery({
+    queryKey: ["nail-designs"],
+    queryFn: listarNailDesignsApi,
+    enabled: adminAberto, // Só faz a requisição se o modal estiver aberto
+  });    
+  const handleSelecaoAdmin = (valor: string) => {
+    setAdminTipoSelecionado(valor);
+    if (valor !== "outro") {
+      const profissional = nailDesignsQuery.data?.find((nd) => nd.id.toString() === valor);
+      if (profissional) {
+        // Carrega nome e e-mail da nail selecionada (vindos do banco)
+        setAdminNome(profissional.nome);
+        setAdminEmail(profissional.email ?? "");
+      }
+    } else {
+      setAdminNome("");
+      setAdminEmail("");
+    }
+  };
   const [senhaAberto, setSenhaAberto] = useState(false);
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmaSenha, setConfirmaSenha] = useState("");
 
-  const { usuario, entrar, cadastrar, sair, ehAdmin } = useAuth();
+  const { usuario, entrar, cadastrar, sair, ehAdmin, ehNailAdmin } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Nail admin (type 3) não gerencia a equipe: o back bloqueia administradores
+  // e nail_designs para esse perfil, então o item some da navegação.
+  const navVisivel = ehNailAdmin ? nav.filter((item) => item.to !== "/admin/equipe") : nav;
 
   const novoAdminMutation = useMutation({
     mutationFn: async () => {
       if (!adminNome.trim() || !adminEmail.trim() || !adminSenha) {
         throw new ApiError(400, "Preencha nome, email e senha.");
       }
-      return criarAdministradorApi({ nome: adminNome.trim(), email: adminEmail.trim(), password: adminSenha, type_user_id: 1 });
+      // Selecionou uma nail designer na modal → cria conta de acesso
+      // limitado (type 3) vinculada via nail_design_id; senão, admin comum.
+      const nailId = adminTipoSelecionado !== "outro" ? Number(adminTipoSelecionado) : null;
+      return criarAdministradorApi({
+        nome: adminNome.trim(),
+        email: adminEmail.trim(),
+        password: adminSenha,
+        type_user_id: nailId ? 3 : 1,
+        ...(nailId ? { nail_design_id: nailId } : {}),
+      });
     },
     onSuccess: () => {
       toast.success("Administrador adicionado com sucesso");
@@ -88,6 +127,7 @@ export function AdminShell({
       setAdminNome("");
       setAdminEmail("");
       setAdminSenha("");
+      setAdminTipoSelecionado("outro");
       void queryClient.invalidateQueries();
     },
     onError: (e) => {
@@ -125,6 +165,7 @@ export function AdminShell({
       setAdminNome("");
       setAdminEmail("");
       setAdminSenha("");
+      setAdminTipoSelecionado("outro");
     }
   };
 
@@ -183,6 +224,8 @@ export function AdminShell({
       </div>
     );
   }
+  // A nail admin (type 3) também entra no painel — as funções exclusivas da
+  // administradora completa são escondidas na UI (botões/nav abaixo).
 
   return (
     <>
@@ -224,7 +267,7 @@ export function AdminShell({
                 </div>
 
                 <nav className="mt-8 space-y-1">
-                  {nav.map((item) => (
+                  {navVisivel.map((item) => (
                     <Link
                       key={item.to}
                       to={item.to}
@@ -264,16 +307,18 @@ export function AdminShell({
                   <KeyRound className="size-4 shrink-0 text-primary" />
                   <span>Mudar minha senha</span>
                 </button>
-                <button
-                  onClick={() => {
-                    setOpenNav(false);
-                    setAdminAberto(true);
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                >
-                  <Plus className="size-4 shrink-0 text-primary" />
-                  <span>Adicionar admin</span>
-                </button>
+                {ehNailAdmin ? null : (
+                  <button
+                    onClick={() => {
+                      setOpenNav(false);
+                      setAdminAberto(true);
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  >
+                    <Plus className="size-4 shrink-0 text-primary" />
+                    <span>Adicionar admin</span>
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     sair();
@@ -343,12 +388,14 @@ export function AdminShell({
                       >
                         <KeyRound className="size-3.5 text-primary" /> Mudar senha
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setAdminAberto(true)}
-                        className="cursor-pointer rounded-xl text-xs flex items-center gap-2 py-2"
-                      >
-                        <Plus className="size-3.5 text-primary" /> Adicionar admin
-                      </DropdownMenuItem>
+                      {ehNailAdmin ? null : (
+                        <DropdownMenuItem
+                          onClick={() => setAdminAberto(true)}
+                          className="cursor-pointer rounded-xl text-xs flex items-center gap-2 py-2"
+                        >
+                          <Plus className="size-3.5 text-primary" /> Adicionar admin
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => {
@@ -425,17 +472,52 @@ export function AdminShell({
             <DialogDescription>Crie uma nova conta de acesso administrativo.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
+            {/* CAMPO DE SELEÇÃO */}
+            <div className="space-y-1.5">
+              <Label>Vincular a uma Nail Designer?</Label>
+              <Select value={adminTipoSelecionado} onValueChange={handleSelecaoAdmin}>
+                <SelectTrigger className="h-11 rounded-xl">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="outro">Não (Outro administrador)</SelectItem>
+                  {nailDesignsQuery.data?.map((nd) => (
+                    <SelectItem key={nd.id} value={nd.id.toString()}>
+                      {nd.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-1.5">
               <Label>Nome</Label>
-              <Input value={adminNome} onChange={(e) => setAdminNome(e.target.value)} placeholder="Nome completo" className="h-11 rounded-xl" />
+              <Input 
+                value={adminNome} 
+                onChange={(e) => setAdminNome(e.target.value)} 
+                placeholder="Nome completo" 
+                className="h-11 rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Email</Label>
-              <Input type="email" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder="admin@example.com" className="h-11 rounded-xl" />
+              <Input 
+                type="email" 
+                value={adminEmail} 
+                onChange={(e) => setAdminEmail(e.target.value)} 
+                placeholder="admin@example.com" 
+                className="h-11 rounded-xl"
+              />
             </div>
             <div className="space-y-1.5">
-              <Label>Senha</Label>
-              <Input type="password" value={adminSenha} onChange={(e) => setAdminSenha(e.target.value)} placeholder="Mínimo 8 caracteres" className="h-11 rounded-xl" />
+              <Label>Senha inicial</Label>
+              <Input 
+                type="password" 
+                value={adminSenha} 
+                onChange={(e) => setAdminSenha(e.target.value)} 
+                placeholder="Mínimo 8 caracteres" 
+                className="h-11 rounded-xl" 
+              />
             </div>
           </div>
           <Button
@@ -514,18 +596,15 @@ export function statusTone(status: string) {
   return "primary";
 }
 
+type PrimaryButtonProps = React.ComponentProps<"button">;
 export function PrimaryButton({
   children,
-  onClick,
-  className = "",
-}: {
-  children: ReactNode;
-  onClick?: () => void;
-  className?: string;
-}) {
+  className,
+  ...buttonProps
+}: PrimaryButtonProps) {
   return (
     <button
-      onClick={onClick}
+      {...buttonProps}
       className={`inline-flex items-center justify-center gap-2 rounded-full bg-gradient-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-soft transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className}`}
     >
       {children}

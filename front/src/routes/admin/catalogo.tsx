@@ -8,6 +8,7 @@ import {
   PrimaryButton,
 } from "@/components/admin/AdminShell";
 import { categorias, brl, mapModeloApi, duracaoParaApi, type Modelo } from "@/lib/dados";
+import { useAuth } from "@/lib/auth";
 import { FotoModelo } from "@/components/foto-modelo";
 import {
   ApiError,
@@ -52,7 +53,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Loader2, ImagePlus, Star, Power, Sparkles, Shield, User, Phone, IdCard } from "lucide-react";
 import { toast } from "sonner";
-import { mascararCpf, mascararTelefone } from "@/lib/masks";
+import { mascararCpf, mascararTelefone, mascararMoeda, mascararDuracao } from "@/lib/masks";
 
 export const Route = createFileRoute("/admin/catalogo")({
   head: () => ({
@@ -90,6 +91,7 @@ const vazio: FormModelo = {
 };
 
 function CatalogoAdmin() {
+  const { ehNailAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [aberto, setAberto] = useState(false);
   const [form, setForm] = useState<FormModelo>(vazio);
@@ -97,6 +99,12 @@ function CatalogoAdmin() {
   const [previa, setPrevia] = useState<string | null>(null);
   const [excluirId, setExcluirId] = useState<number | null>(null);
   const [abaAtiva, setAbaAtiva] = useState<"modelos" | "profissionais">("modelos");
+
+  useEffect(() => {
+    if (ehNailAdmin && abaAtiva !== "modelos") {
+      setAbaAtiva("modelos");
+    }
+  }, [ehNailAdmin, abaAtiva]);
 
   // Estado para cadastro de Nail Design
   const [nailDesignAberto, setNailDesignAberto] = useState(false);
@@ -107,6 +115,7 @@ function CatalogoAdmin() {
   const [ndEmail, setNdEmail] = useState("");
   const [ndSenha, setNdSenha] = useState("");
   const [excluirNdId, setExcluirNdId] = useState<number | null>(null);
+  const editando = Boolean(form.id);
 
   // Miniatura local da foto escolhida (sem subir nada ainda).
   useEffect(() => {
@@ -160,8 +169,10 @@ function CatalogoAdmin() {
         cpf: cpfLimpo,
         telefone: ndTelefone.trim() || "Não informado",
         eh_admin: ndEhAdmin,
-        email: ndEhAdmin ? ndEmail.trim() : undefined,
-        password: ndEhAdmin ? ndSenha : undefined,
+        ...(ndEhAdmin
+          ? { email: ndEmail.trim(), password: ndSenha}
+          : {}
+        )
       });
     },
     onSuccess: () => {
@@ -291,19 +302,23 @@ function CatalogoAdmin() {
 
   return (
     <AdminShell
-      title="Catálogo & Profissionais"
-      subtitle="Gerencie os modelos do catálogo e a equipe de nail designers"
+      title={ehNailAdmin ? "Catálogo de Modelos" : "Catálogo & Profissionais"}
+      subtitle={
+        ehNailAdmin
+          ? "Gerencie os modelos e fotos do catálogo de serviços"
+          : "Gerencie os modelos do catálogo e a equipe de nail designers"
+      }
       actions={
         <div className="flex items-center gap-2">
           {abaAtiva === "modelos" ? (
             <PrimaryButton onClick={abrirNovo}>
               <Plus className="size-4" /> Novo modelo
             </PrimaryButton>
-          ) : (
+          ) : !ehNailAdmin ? (
             <PrimaryButton onClick={() => setNailDesignAberto(true)}>
               <Plus className="size-4" /> Nova profissional
             </PrimaryButton>
-          )}
+          ) : null}
         </div>
       }
     >
@@ -313,9 +328,11 @@ function CatalogoAdmin() {
             <TabsTrigger value="modelos" className="rounded-xl px-4 py-2 text-xs sm:text-sm flex items-center gap-2">
               <Sparkles className="size-4 text-primary" /> Modelos ({modelos.length})
             </TabsTrigger>
-            <TabsTrigger value="profissionais" className="rounded-xl px-4 py-2 text-xs sm:text-sm flex items-center gap-2">
-              <User className="size-4 text-secondary" /> Nail Designers ({nailDesigns.length})
-            </TabsTrigger>
+            {!ehNailAdmin && (
+              <TabsTrigger value="profissionais" className="rounded-xl px-4 py-2 text-xs sm:text-sm flex items-center gap-2">
+                <User className="size-4 text-secondary" /> Nail Designers ({nailDesigns.length})
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
@@ -440,7 +457,8 @@ function CatalogoAdmin() {
           )}
         </TabsContent>
 
-        <TabsContent value="profissionais" className="space-y-6">
+        {!ehNailAdmin && (
+          <TabsContent value="profissionais" className="space-y-6">
           <Card className="!p-0 overflow-hidden">
             {nailDesignsQuery.isPending ? (
               <div className="space-y-3 p-6">
@@ -524,9 +542,11 @@ function CatalogoAdmin() {
             )}
           </Card>
         </TabsContent>
+        )}
       </Tabs>
 
       {/* Modal Adicionar Nail Design */}
+      {!ehNailAdmin && (
       <Dialog open={nailDesignAberto} onOpenChange={setNailDesignAberto}>
         <DialogContent className="max-w-md rounded-3xl border-border/70 bg-card shadow-card max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-left">
@@ -627,6 +647,7 @@ function CatalogoAdmin() {
           </Button>
         </DialogContent>
       </Dialog>
+      )}
 
       {/* Modal POST / PATCH Modelo */}
       <Dialog open={aberto} onOpenChange={setAberto}>
@@ -666,7 +687,7 @@ function CatalogoAdmin() {
               <Label>Duração</Label>
               <Input
                 value={form.duracao}
-                onChange={(e) => setForm({ ...form, duracao: e.target.value })}
+                onChange={(e) => setForm({ ...form, duracao: mascararDuracao(e.target.value) })}
                 placeholder="1h30"
                 className="h-11 rounded-xl"
               />
@@ -675,7 +696,7 @@ function CatalogoAdmin() {
               <Label>Valor total (R$)</Label>
               <Input
                 value={form.preco}
-                onChange={(e) => setForm({ ...form, preco: e.target.value })}
+                onChange={(e) => setForm({ ...form, preco: mascararMoeda(e.target.value) })}
                 placeholder="140"
                 inputMode="decimal"
                 className="h-11 rounded-xl"

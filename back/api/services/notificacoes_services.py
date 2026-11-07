@@ -3,11 +3,11 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
+from api.permissions import is_admin_or_nail
 from api.repositories.notificacoes_repository import NotificacoesRepository
 from api.repositories.push_subscriptions_repository import (
     PushSubscriptionsRepository,
 )
-from api.schemas.enums import TypeUserEnum
 from api.schemas.global_schemas import UsuarioLogado
 from api.schemas.notificacoes_schemas import NotificacaoFilter
 
@@ -19,10 +19,7 @@ class NotificacoesServices:
         self.push_repository = PushSubscriptionsRepository()
 
     def _exigir_admin(self, current_user: UsuarioLogado) -> None:
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        if not is_admin_or_nail(current_user):
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN

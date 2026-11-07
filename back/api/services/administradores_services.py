@@ -3,6 +3,7 @@ from http import HTTPStatus
 from asyncpg import Connection
 from fastapi import HTTPException
 
+from api.permissions import is_nail_admin
 from api.repositories.administradores_repository import AdministradoresRepository
 from api.schemas.administradores_schemas import (
     AdministradorBase,
@@ -58,8 +59,10 @@ class AdministradoresServices:
             )
 
         dados = administradores.model_dump()
-        # PAINEL SEMPRE CRIA ADMIN — garante papel e nunca salva senha pura
-        dados['type_user_id'] = TypeUserEnum.ADMIN.value
+        if dados.get('nail_design_id'):
+            dados['type_user_id'] = dados.get('type_user_id') or TypeUserEnum.NAIL_ADMIN.value
+        elif not dados.get('type_user_id'):
+            dados['type_user_id'] = TypeUserEnum.ADMIN.value
         dados['password'] = get_password_hash(dados['password'])
 
         resultado = await self.administradores_repository.criar(
@@ -103,10 +106,17 @@ class AdministradoresServices:
         administrador: AdministradorUpdate,
         current_user: UsuarioLogado
     ) -> dict:
-        if (
-            current_user.type_user_id !=
-            TypeUserEnum.ADMIN.value
-        ):
+        dados = administrador.model_dump(exclude_unset=True)
+
+        # Nail admin (3) só altera a própria senha: não muda tipo, vínculo
+        # nem dados de outras contas (evita escalação de privilégio).
+        if is_nail_admin(current_user):
+            if administrador_id != current_user.id or set(dados) - {'password'}:
+                raise HTTPException(
+                    detail='A ação requer elevação',
+                    status_code=HTTPStatus.FORBIDDEN
+                )
+        elif current_user.type_user_id != TypeUserEnum.ADMIN.value:
             raise HTTPException(
                 detail='A ação requer elevação',
                 status_code=HTTPStatus.FORBIDDEN
@@ -121,8 +131,6 @@ class AdministradoresServices:
                 detail='Administrador não encontrado',
                 status_code=HTTPStatus.NOT_FOUND
             )
-
-        dados = administrador.model_dump(exclude_unset=True)
 
         if dados.get('password'):
             dados['password'] = get_password_hash(dados['password'])
