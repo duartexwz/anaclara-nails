@@ -14,9 +14,11 @@ export const API_URL =
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  originalError?: unknown;
+  constructor(status: number, message: string, originalError?: unknown) {
     super(message);
     this.status = status;
+    this.originalError = originalError;
   }
 }
 
@@ -125,19 +127,42 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const csrf = lerCookie("csrf_token");
   const access = lerSessao(ACCESS_KEY);
-  const res = await fetch(`${API_URL}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(access ? { Authorization: `Bearer ${access}` } : {}),
-      ...(csrf ? { "X-CSRF-Token": csrf } : {}),
-      ...(init.headers ?? {}),
-    },
-  });
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(access ? { Authorization: `Bearer ${access}` } : {}),
+        ...(csrf ? { "X-CSRF-Token": csrf } : {}),
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (erroRede) {
+    console.error(`[API Network Error] ${init.method || "GET"} ${path}:`, erroRede);
+    throw new ApiError(
+      0,
+      "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.",
+      erroRede,
+    );
+  }
+
   if (res.status === 204) return undefined as T;
   const corpo = await res.json().catch(() => ({}));
+
   if (!res.ok) {
+    // Registra os detalhes técnicos completos no console/logs
+    console.error(
+      `[API Error ${res.status}] ${init.method || "GET"} ${path}:`,
+      {
+        status: res.status,
+        statusText: res.statusText,
+        corpo,
+      },
+    );
+
     // Sessão expirada: tenta renovar uma vez (exceto no login/refresh).
     if (
       res.status === 401 &&
@@ -147,11 +172,36 @@ export async function apiFetch<T>(
     ) {
       if (await renovarSessao()) return apiFetch(path, init, tentativa + 1);
     }
-    const detalhe =
-      typeof corpo?.detail === "string"
-        ? corpo.detail
-        : `Erro ${res.status} na API`;
-    throw new ApiError(res.status, detalhe);
+
+    let mensagemAmigavel: string;
+    if (res.status >= 500) {
+      mensagemAmigavel =
+        "Ocorreu uma instabilidade temporária. Por favor, tente novamente em instantes.";
+    } else if (typeof corpo?.detail === "string" && corpo.detail.trim()) {
+      const d = corpo.detail.trim();
+      // Se contiver exceções ou mensagens cruas de stacktrace/código do servidor, oculta do usuário
+      if (
+        /internal server error|traceback|syntaxerror|keyerror|operationalerror|exception|undefined/i.test(
+          d,
+        )
+      ) {
+        mensagemAmigavel =
+          "Ocorreu uma instabilidade temporária. Por favor, tente novamente em instantes.";
+      } else {
+        mensagemAmigavel = d;
+      }
+    } else if (res.status === 404) {
+      mensagemAmigavel = "O item solicitado não foi encontrado.";
+    } else if (res.status === 403) {
+      mensagemAmigavel = "Você não tem permissão para realizar esta ação.";
+    } else if (res.status === 401) {
+      mensagemAmigavel = "Sessão expirada. Faça login novamente para continuar.";
+    } else {
+      mensagemAmigavel =
+        "Não foi possível concluir a ação. Por favor, tente novamente.";
+    }
+
+    throw new ApiError(res.status, mensagemAmigavel, corpo);
   }
   return corpo as T;
 }
@@ -178,10 +228,14 @@ export async function loginApi(
     body: corpo,
   });
   if (!res.ok) {
-    throw new ApiError(
-      res.status,
-      res.status === 401 ? "E-mail ou senha inválidos" : "Falha no login",
-    );
+    console.error(`[API Login Error ${res.status}]:`, { email });
+    const msg =
+      res.status === 401
+        ? "E-mail ou senha incorretos."
+        : res.status >= 500
+          ? "Ocorreu uma instabilidade temporária. Por favor, tente novamente em instantes."
+          : "Não foi possível realizar o login. Tente novamente.";
+    throw new ApiError(res.status, msg);
   }
   const data = (await res.json()) as {
     user: UsuarioApi;
@@ -390,7 +444,15 @@ export async function uploadFotoModeloApi(
     },
     body: form,
   });
-  if (!res.ok) throw new ApiError(res.status, "Falha no upload da foto");
+  if (!res.ok) {
+    console.error(`[Upload Error ${res.status}] para modelo ${id}`);
+    throw new ApiError(
+      res.status,
+      res.status >= 500
+        ? "Instabilidade no envio da foto. Tente novamente em instantes."
+        : "Não foi possível enviar a foto. Verifique o arquivo e tente novamente.",
+    );
+  }
   return (await res.json()) as { url: string; key: string };
 }
 

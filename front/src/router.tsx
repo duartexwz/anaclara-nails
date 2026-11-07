@@ -1,9 +1,19 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
   const queryClient = new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        console.error(`[Query Error] ${query.queryKey.join("/")}:`, error);
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error) => {
+        console.error("[Mutation Error]:", error);
+      },
+    }),
     defaultOptions: {
       queries: {
         staleTime: 5 * 60 * 1000,

@@ -18,3 +18,4 @@ class StatusPagamentoEnum(str, Enum):
 class TypeUserEnum(int, Enum):
     ADMIN = 1
     USER = 2
+    NAIL_ADMIN = 3
