@@ -13,7 +13,7 @@
       "framework": "fastapi",
       "entrypoint": "api.app:app",
       "installCommand": "pip install -r requirements.txt",
-      "buildCommand": "pip install -r requirements.txt python -m back.api.seed"
+      "buildCommand": "./build.sh"
     }
   },
   "rewrites": [
