@@ -5,7 +5,7 @@
     "front": {
       "root": "front",
       "framework": "tanstack-start",
-      "buildCommand": "bun run build",
+      "buildCommand": "./build.sh",
       "installCommand": "bun install"
     },
     "back": {
