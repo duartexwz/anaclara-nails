@@ -5,14 +5,14 @@
     "front": {
       "root": "front",
       "framework": "tanstack-start",
-      "buildCommand": "./build.sh",
+      "buildCommand": "bun run build",
       "installCommand": "bun install"
     },
     "back": {
       "root": "back",
       "framework": "fastapi",
       "entrypoint": "api.app:app",
-      "installCommand": "pip install -r requirements.txt",
+      "installCommand": "./build.sh",
       "buildCommand": "pip install -r requirements.txt"
     }
   },
