@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = 'dev'
     DATABASE_URL: str
     SECRET_KEY: str
-    CLIENT_ID: int
+    CLIENT_ID: str
     ACCESS_TOKEN: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     ALGORITHM: str = 'HS256'
