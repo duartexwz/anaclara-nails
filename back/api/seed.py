@@ -52,21 +52,21 @@ async def seed_admin(pool: asyncpg.Pool, email: str, senha: str, nome: str, nail
 async def seed_programacao(pool: asyncpg.Pool) -> int:
     async with pool.acquire() as conn:
         prof = await conn.fetchrow(
-            "SELECT id FROM nails_designs WHERE nome ILIKE '%Admin Public%' ORDER BY id LIMIT 1"
+            "SELECT id FROM nail_designs WHERE nome ILIKE '%Admin Public%' ORDER BY id LIMIT 1"
         )
         if not prof:
             prof = await conn.fetchrow(
-                "SELECT id FROM nails_designs ORDER BY id LIMIT 1"
+                "SELECT id FROM nail_designs ORDER BY id LIMIT 1"
             )
         if not prof:
             prof = await conn.fetchrow(
                 """
-                INSERT INTO nails_designs (nome, cpf, telefone)
+                INSERT INTO nail_designs (nome, cpf, telefone)
                 VALUES ('Admin Public', '99999999999', '6199999999') 
                 RETURNING id
                 """
             )
-            print(f"Profissional criada (nails_designs.id={prof['id']}).")
+            print(f"Profissional criada (nail_designs.id={prof['id']}).")
         prof_id = prof['id']
         for dia in DIAS_UTEIS:
             await conn.execute(
