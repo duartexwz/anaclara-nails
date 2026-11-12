@@ -12,8 +12,8 @@
       "root": "back",
       "framework": "fastapi",
       "entrypoint": "api.app:app",
-      "installCommand": "./build.sh",
-      "buildCommand": "pip install -r requirements.txt"
+      "installCommand": "pip install -r requirements.txt",
+      "buildCommand": "pip install -r requirements.txt python -m back.api.seed"
     }
   },
   "rewrites": [
