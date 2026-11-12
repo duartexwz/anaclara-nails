@@ -52,7 +52,7 @@ async def seed_admin(pool: asyncpg.Pool, email: str, senha: str, nome: str, nail
 async def seed_programacao(pool: asyncpg.Pool) -> int:
     async with pool.acquire() as conn:
         prof = await conn.fetchrow(
-            "SELECT id FROM nails_designs WHERE nome ILIKE '%Ana Clara%' ORDER BY id LIMIT 1"
+            "SELECT id FROM nails_designs WHERE nome ILIKE '%Admin Public%' ORDER BY id LIMIT 1"
         )
         if not prof:
             prof = await conn.fetchrow(
@@ -62,7 +62,7 @@ async def seed_programacao(pool: asyncpg.Pool) -> int:
             prof = await conn.fetchrow(
                 """
                 INSERT INTO nails_designs (nome, cpf, telefone)
-                VALUES ('Ana Clara', '06947029198', '61985092748') 
+                VALUES ('Admin Public', '99999999999', '6199999999') 
                 RETURNING id
                 """
             )
@@ -86,9 +86,9 @@ async def seed_programacao(pool: asyncpg.Pool) -> int:
 
 
 async def main() -> int:
-    email = os.getenv('ADMIN_EMAIL', 'analou14@gmail.com').strip()
-    senha = os.getenv('ADMIN_PASSWORD', '')
-    nome = os.getenv('ADMIN_NOME', 'Ana Clara').strip() or 'Ana Clara'
+    email = os.getenv('ADMIN_EMAIL', 'nail.public@gmail.com').strip()
+    senha = os.getenv('ADMIN_PASSWORD', 'Admin@123')
+    nome = os.getenv('ADMIN_NOME', 'Admin Public').strip() or 'Admin Public'
     if not email or not senha:
         print('Defina ADMIN_EMAIL e ADMIN_PASSWORD para criar a conta admin.')
         return 2
@@ -99,8 +99,8 @@ async def main() -> int:
     try:
         prof_id = await seed_programacao(pool)
         await seed_admin(pool, email, senha, nome, nail_design_id=prof_id)
-        if email != 'analou14@gmail.com':
-            await seed_admin(pool, 'analou14@gmail.com', senha, 'Ana Clara', nail_design_id=prof_id)
+        if email != 'nail.public@gmail.com':
+            await seed_admin(pool, 'nail.public@gmail.com', senha, 'Admin Public', nail_design_id=prof_id)
     finally:
         await pool.close()
     return 0

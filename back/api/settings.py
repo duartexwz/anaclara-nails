@@ -31,10 +31,10 @@ class Settings(BaseSettings):
     MERCADO_PAGO_WEBHOOK_ACESS_TOKEN: str 
 
     # Email
-    SMTP_USER: str = 'analoud14@gmail.com'
-    SMTP_PASSORD: str = 'xiju gmxn yerw angp'
+    SMTP_USER: str = 'mayckonkennedy@gmail.com'
+    SMTP_PASSORD: str = 'rfwn qvts wyai yvgg'
     SMTP_HOST: str = 'smtp.gmail.com'
-    SMTP_FROM: str = 'analoud14@gmail.com'
+    SMTP_FROM: str = 'mayckonkennedy877@gmail.com'
     SMTP_PORT: int = 587
     SMTP_USE_TLS: bool = True
     SMTP_USE_SSL: bool = True
